@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live P2P Chat</title>
+    <!-- Include PeerJS Library -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; flex-direction: column; height: 100vh; margin: 0; }
+        #setup { background: #004488; color: white; padding: 20px; text-align: center; }
+        #chat-room { flex: 1; display: flex; flex-direction: column; width: 90%; max-width: 600px; margin: 20px auto; background: white; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow: hidden; }
+        #messages { flex: 1; padding: 20px; overflow-y: auto; background: #e5ddd5; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px; border-radius: 8px; max-width: 70%; word-wrap: break-word; }
+        .local { align-self: flex-end; background: #dcf8c6; }
+        .remote { align-self: flex-start; background: white; }
+        .input-area { display: flex; padding: 10px; border-top: 1px solid #ddd; }
+        input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        button { margin-left: 5px; padding: 10px 15px; background: #075e54; color: white; border: none; cursor: pointer; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+<div id="setup">
+    <h3>Your Remote ID: <span id="my-id">Loading...</span></h3>
+    <input type="text" id="peer-id-input" placeholder="Enter Friend's ID" style="width:200px">
+    <button onclick="connectToPeer()" style="background:#25d366">Connect to Friend</button>
+</div>
+
+<div id="chat-room">
+    <div id="messages"></div>
+    <div class="input-area">
+        <input type="text" id="text-input" placeholder="Type a message..." onkeypress="if(event.key==='Enter') send()">
+        <button onclick="send()">Send</button>
+    </div>
+</div>
+
+<script>
+    let peer = new Peer(); // Create a Peer object
+    let conn;
+
+    // Display your ID so you can share it
+    peer.on('open', (id) => {
+        document.getElementById('my-id').innerText = id;
+    });
+
+    // Listen for incoming connections
+    peer.on('connection', (connection) => {
+        conn = connection;
+        setupChat();
+    });
+
+    // Function to connect to a friend
+    function connectToPeer() {
+        const remoteId = document.getElementById('peer-id-input').value;
+        conn = peer.connect(remoteId);
+        setupChat();
+    }
+
+    function setupChat() {
+        document.getElementById('messages').innerHTML += `<div class="msg"><i>Connected to Peer!</i></div>`;
+        
+        conn.on('data', (data) => {
+            appendMessage(data, 'remote');
+        });
+    }
+
+    function send() {
+        const input = document.getElementById('text-input');
+        const msg = input.value;
+        if (conn && conn.open) {
+            conn.send(msg);
+            appendMessage(msg, 'local');
+            input.value = "";
+        } else {
+            alert("Not connected to anyone!");
+        }
+    }
+
+    function appendMessage(text, side) {
+        const div = document.createElement('div');
+        div.classList.add('msg', side);
+        div.innerText = text;
+        document.getElementById('messages').appendChild(div);
+        document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+    }
+</script>
+
+</body>
+</html>
