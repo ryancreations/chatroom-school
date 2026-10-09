@@ -1,375 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>School Chat</title>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <title>Login - SchoolChat</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <style>
-        :root {
-            --bg: #0f172a;
-            --primary: #0ea5e9;   /* blue */
-            --accent: #10b981;    /* green */
-            --bubble-me: linear-gradient(135deg, #0ea5e9, #10b981);
-            --bubble-them: #1e293b;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--bg);
-            color: white;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Header */
-        #header {
-            background: linear-gradient(90deg, #0ea5e9, #10b981, #0ea5e9);
-            padding: 16px;
-            text-align: center;
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-
-        #my-id {
-            font-size: 0.85rem;
-            opacity: 0.9;
-            margin-top: 4px;
-            word-break: break-all;
-        }
-
-        /* Username prompt */
-        #username-screen {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 16px;
-            padding: 20px;
-        }
-
-        #username-screen input {
-            padding: 14px 18px;
-            border-radius: 12px;
-            border: none;
-            font-size: 1rem;
-            width: 260px;
-            text-align: center;
-        }
-
-        #username-screen button {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 14px 32px;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        /* Main chat area (hidden until username set) */
-        #app {
-            display: none;
-            flex: 1;
-            flex-direction: column;
-            max-width: 600px;
-            width: 100%;
-            margin: 0 auto;
-        }
-
-        #connect-bar {
-            padding: 12px 16px;
-            background: #1e293b;
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        #connect-bar input {
-            flex: 1;
-            padding: 10px 14px;
-            border-radius: 8px;
-            border: none;
-            font-size: 0.95rem;
-        }
-
-        #connect-bar button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        #status {
-            padding: 8px 16px;
-            font-size: 0.85rem;
-            background: #0f172a;
-            color: #94a3b8;
-        }
-
-        #messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            background: #0f172a;
-        }
-
-        .msg {
-            max-width: 80%;
-            padding: 10px 14px;
-            border-radius: 16px;
-            line-height: 1.4;
-            word-wrap: break-word;
-            font-size: 0.95rem;
-        }
-
-        .local {
-            align-self: flex-end;
-            background: var(--bubble-me);
-            color: white;
-            border-bottom-right-radius: 4px;
-        }
-
-        .remote {
-            align-self: flex-start;
-            background: var(--bubble-them);
-            color: white;
-            border-bottom-left-radius: 4px;
-        }
-
-        .msg img {
-            max-width: 100%;
-            border-radius: 8px;
-            margin-top: 4px;
-        }
-
-        .system {
-            align-self: center;
-            background: transparent;
-            color: #94a3b8;
-            font-size: 0.8rem;
-            font-style: italic;
-        }
-
-        #input-area {
-            display: flex;
-            padding: 12px 16px;
-            background: #1e293b;
-            gap: 8px;
-        }
-
-        #text-input {
-            flex: 1;
-            padding: 12px 16px;
-            border-radius: 24px;
-            border: none;
-            font-size: 1rem;
-            background: #0f172a;
-            color: white;
-        }
-
-        #text-input::placeholder {
-            color: #64748b;
-        }
-
-        #send-btn {
-            background: var(--accent);
-            color: white;
-            border: none;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            font-size: 1.2rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        body { font-family: sans-serif; background: #313338; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .box { background: #383A40; padding: 40px; border-radius: 8px; width: 300px; text-align: center; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 4px; border: none; }
+        button { width: 100%; padding: 10px; background: #5865F2; color: white; border: none; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
-
-    <!-- Username screen (shows first) -->
-    <div id="username-screen">
-        <h2 style="margin-bottom: 8px;">School Chat</h2>
-        <p style="color:#94a3b8; margin-bottom: 12px;">Pick a username</p>
-        <input type="text" id="username-input" placeholder="Your username" maxlength="20">
-        <button onclick="setUsername()">Continue</button>
+    <div class="box">
+        <h2>Welcome Back!</h2>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="pass" placeholder="Password">
+        <button onclick="signUp()">Sign Up</button>
+        <button onclick="login()" style="background:transparent; margin-top:10px;">Login</button>
     </div>
 
-    <!-- Main app (hidden until username is set) -->
-    <div id="app">
-        <div id="header">
-            School Chat
-            <div id="my-id">Your ID: Loading...</div>
-        </div>
+    <script>
+        <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
 
-        <div id="connect-bar">
-            <input type="text" id="peer-id-input" placeholder="Friend's ID">
-            <button onclick="connectToPeer()">Connect</button>
-        </div>
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyBPC0x93NkRWCxMUA0c8xkS-jQa2IdbysI",
+    authDomain: "schoolchat-7f5a5.firebaseapp.com",
+    projectId: "schoolchat-7f5a5",
+    storageBucket: "schoolchat-7f5a5.firebasestorage.app",
+    messagingSenderId: "752691397853",
+    appId: "1:752691397853:web:b4acd05e0259979edfc734",
+    measurementId: "G-QS6SVMF7FE"
+  };
 
-        <div id="status">Not connected yet</div>
-
-        <div id="messages"></div>
-
-        <div id="input-area">
-            <input type="text" id="text-input" placeholder="Type a message or paste a GIF link..." 
-                   onkeypress="if(event.key==='Enter') sendMessage()">
-            <button id="send-btn" onclick="sendMessage()">➤</button>
-        </div>
-    </div>
-
-<script>
-    let peer;
-    let conn;
-    let myUsername = "";
-
-    // ========== USERNAME ==========
-    function setUsername() {
-        const input = document.getElementById('username-input');
-        const name = input.value.trim();
-        if (!name) {
-            alert("Please type a username");
-            return;
-        }
-        myUsername = name;
-        localStorage.setItem('chat_username', name); // remembers it next time
-
-        document.getElementById('username-screen').style.display = 'none';
-        document.getElementById('app').style.display = 'flex';
-
-        startPeer();
-    }
-
-    // Check if we already have a saved username
-    window.onload = function() {
-        const saved = localStorage.getItem('chat_username');
-        if (saved) {
-            document.getElementById('username-input').value = saved;
-        }
-    };
-
-    // ========== PEERJS ==========
-    function startPeer() {
-        peer = new Peer();
-
-        peer.on('open', (id) => {
-            document.getElementById('my-id').innerText = "Your ID: " + id;
-        });
-
-        peer.on('connection', (connection) => {
-            conn = connection;
-            setupChat();
-        });
-
-        peer.on('error', (err) => {
-            console.log(err);
-            updateStatus("Error: " + err.type);
-        });
-    }
-
-    function connectToPeer() {
-        const remoteId = document.getElementById('peer-id-input').value.trim();
-        if (!remoteId) {
-            alert("Paste your friend's ID first");
-            return;
-        }
-        conn = peer.connect(remoteId);
-        setupChat();
-    }
-
-    function setupChat() {
-        updateStatus("Connected! You can chat now.");
-
-        conn.on('data', (data) => {
-            // data can be text or an object
-            if (typeof data === 'object' && data.type === 'message') {
-                appendMessage(data.text, 'remote', data.username);
-            } else {
-                appendMessage(data, 'remote');
-            }
-        });
-
-        conn.on('close', () => {
-            updateStatus("Connection closed");
-            appendMessage("Friend disconnected", 'system');
-        });
-
-        // Send a hello with username
-        conn.on('open', () => {
-            conn.send({
-                type: 'message',
-                username: myUsername,
-                text: myUsername + " joined the chat"
-            });
-        });
-    }
-
-    function sendMessage() {
-        const input = document.getElementById('text-input');
-        const text = input.value.trim();
-        if (!text) return;
-
-        if (!conn || !conn.open) {
-            alert("Not connected to anyone yet!");
-            return;
-        }
-
-        // Send as object so we can include username
-        const payload = {
-            type: 'message',
-            username: myUsername,
-            text: text
-        };
-
-        conn.send(payload);
-        appendMessage(text, 'local', myUsername);
-        input.value = "";
-    }
-
-    function appendMessage(text, side, username) {
-        const messages = document.getElementById('messages');
-        const div = document.createElement('div');
-        div.classList.add('msg', side);
-
-        // Check if the text is a GIF/image link
-        if (text.match(/\.(gif|png|jpg|jpeg|webp)$/i) || text.includes('giphy.com') || text.includes('tenor.com')) {
-            div.innerHTML = (username && side === 'remote' ? `<strong>${username}</strong><br>` : '') +
-                            `<img src="${text}" alt="gif" onerror="this.outerHTML='${text}'">`;
-        } else {
-            if (username && side === 'remote') {
-                div.innerHTML = `<strong>${username}</strong><br>${escapeHtml(text)}`;
-            } else {
-                div.textContent = text;
-            }
-        }
-
-        messages.appendChild(div);
-        messages.scrollTop = messages.scrollHeight;
-    }
-
-    function updateStatus(text) {
-        document.getElementById('status').textContent = text;
-    }
-
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
 </script>
-
+    </script>
 </body>
 </html>
