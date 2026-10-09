@@ -3,119 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Media Hub</title>
+    <title>School & Post Hub</title>
+    
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
     <style>
-        body {
-            background-color: #121212;
-            color: #e0e0e0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        :root {
+            --bg-color: #18191a; /* FB Dark Mode */
+            --card-bg: #242526;
+            --text-main: #e4e6eb;
+            --text-sub: #b0b3b8;
+            --accent: #0084ff; /* FB Blue */
+            --border: #3e4042;
         }
 
-        h1 { color: #bb86fc; margin-bottom: 30px; }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding-top: 60px; /* Space for navbar */
+            padding-bottom: 80px;
+        }
+
+        /* --- NAVIGATION BAR --- */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 56px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            box-sizing: border-box;
+            z-index: 1000;
+        }
+
+        .nav-logo {
+            font-weight: bold;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .nav-logo span { color: var(--accent); }
+
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-size: 1rem;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-weight: 600;
+        }
+
+        .nav-btn:hover { background: rgba(255,255,255,0.1); }
+        .nav-btn.primary { background: var(--accent); color: white; }
+        .nav-btn.primary:hover { background: #0073e6; }
 
         /* --- FEED STYLES --- */
-        #feed {
-            width: 100%;
-            max-width: 600px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            padding-bottom: 100px; /* Space for the stealth box */
+        #feed-container {
+            max-width: 680px;
+            margin: 20px auto;
+            padding: 0 10px;
         }
 
         .post-card {
-            background: #1f1f1f;
+            background: var(--card-bg);
             border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            border: 1px solid #333;
-            word-wrap: break-word;
+            padding: 12px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #555;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+
+        .user-meta h4 { margin: 0; font-size: 0.95rem; }
+        
+        /* TIMESTAMP STYLE */
+        .timestamp {
+            color: var(--text-sub);
+            font-size: 0.75rem;
+            margin-top: 2px;
+            display: block;
         }
 
         .post-text {
-            margin-bottom: 10px;
-            font-size: 1rem;
+            font-size: 0.95rem;
             line-height: 1.4;
+            margin-bottom: 10px;
+            word-wrap: break-word;
         }
 
         .media-container img {
             max-width: 100%;
-            border-radius: 4px;
+            border-radius: 8px;
             margin-top: 5px;
+            display: block;
         }
 
         .media-container iframe {
             width: 100%;
             height: 315px;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             margin-top: 5px;
         }
 
-        /* --- STEALTH INPUT BOX (Bottom Right) --- */
-        #stealth-box {
+        /* --- MODAL (POST BOX) --- */
+        #post-modal {
+            display: none; /* Hidden by default */
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 300px;
-            background: #2d2d2d;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
-            border: 1px solid #444;
-            z-index: 1000;
-            transition: all 0.3s ease;
-        }
-
-        #stealth-box:hover {
-            transform: translateY(-5px);
-            border-color: #bb86fc;
-        }
-
-        #stealth-input {
-            width: 90%;
-            padding: 10px;
-            background: #121212;
-            border: 1px solid #444;
-            color: white;
-            border-radius: 4px;
-            margin-bottom: 10px;
-        }
-
-        #stealth-btn {
+            top: 0;
+            left: 0;
             width: 100%;
-            padding: 10px;
-            background: #bb86fc;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            width: 90%;
+            max-width: 500px;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: transparent;
             border: none;
-            color: black;
+            color: var(--text-sub);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        textarea {
+            width: 100%;
+            background: #3a3b3c;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            color: white;
+            font-size: 1rem;
+            resize: none;
+            min-height: 100px;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        textarea:focus { box-shadow: 0 0 0 2px var(--accent); }
+
+        .modal-actions {
+            margin-top: 15px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn-post {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 6px;
             font-weight: bold;
             cursor: pointer;
-            border-radius: 4px;
+            font-size: 1rem;
         }
+        
+        .btn-post:disabled { background: #555; cursor: not-allowed; }
 
-        #stealth-btn:hover { background: #9965f4; }
+        /* Loading Spinner */
+        .loader {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top: 3px solid var(--accent);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+            display: none;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .label { font-size: 0.8rem; color: #aaa; margin-bottom: 5px; display: block; }
     </style>
 </head>
 <body>
 
-    <h1>Media Share</h1>
-    <div id="feed">Loading...</div>
+    <!-- NAVIGATION -->
+    <nav>
+        <div class="nav-logo" onclick="window.scrollTo(0,0)">
+            🏫 <span>School</span>Chat
+        </div>
+        <button class="nav-btn primary" id="open-post-btn">+ Create Post</button>
+    </nav>
 
-    <!-- STEALTH INPUT BOX -->
-    <div id="stealth-box">
-        <span class="label">Add Link or Text</span>
-        <input type="text" id="stealth-input" placeholder="Paste YouTube/Image link here...">
-        <button id="stealth-btn">Post</button>
+    <!-- POST MODAL -->
+    <div id="post-modal">
+        <div class="modal-content">
+            <button class="close-modal" id="close-modal">&times;</button>
+            <h3 style="margin-top:0;">Create Post</h3>
+            <textarea id="post-input" placeholder="What's on your mind? (Paste links here!)"></textarea>
+            <div class="modal-actions">
+                <button class="btn-post" id="submit-post">Post</button>
+            </div>
+            <div class="loader" id="loader"></div>
+        </div>
+    </div>
+
+    <!-- FEED -->
+    <div id="feed-container">
+        <div style="text-align:center; padding: 20px; color: var(--text-sub);">Loading feed...</div>
     </div>
 
     <script>
@@ -130,62 +265,122 @@ const firebaseConfig = {
   appId: "1:752691397853:web:b4acd05e0259979edfc734",
   measurementId: "G-QS6SVMF7FE"
 };
+
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
         // --- DOM ELEMENTS ---
-        const feedDiv = document.getElementById('feed');
-        const inputField = document.getElementById('stealth-input');
-        const postBtn = document.getElementById('stealth-btn');
+        const feedContainer = document.getElementById('feed-container');
+        const modal = document.getElementById('post-modal');
+        const openBtn = document.getElementById('open-post-btn');
+        const closeBtn = document.getElementById('close-modal');
+        const postInput = document.getElementById('post-input');
+        const submitBtn = document.getElementById('submit-post');
+        const loader = document.getElementById('loader');
 
-        // --- HELPER: Parse Links ---
-        function parseContent(rawInput) {
-            // Check for YouTube
-            const ytRegex = /^(?:https?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})/;
-            const match = rawInput.match(ytRegex);
-            
-            if (match && match[1]) {
-                return `<div class="media-container"><iframe src="https://www.youtube.com/embed/${match[1]}" allowfullscreen></iframe></div>`;
+        // --- MODAL LOGIC ---
+        openBtn.addEventListener('click', () => {
+            modal.style.display = 'flex';
+            postInput.focus();
+        });
+
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            postInput.value = '';
+        });
+
+        // Close modal if clicking outside
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
             }
-
-            // Check for Image
-            const imgRegex = /\.(jpg|jpeg|png|gif|webp)$/i;
-            if (imgRegex.test(rawInput.trim())) {
-                return `<div class="media-container"><img src="${rawInput.trim()}" alt="Shared Image"></div>`;
-            }
-
-            // Plain Text
-            return `<div class="post-text">${rawInput}</div>`;
         }
 
-        // --- ADD POST TO DATABASE ---
-        postBtn.addEventListener('click', async () => {
-            const text = inputField.value.trim();
+        // --- HELPER: Parse Content (YouTube vs Image vs Text) ---
+        function parseContent(rawText) {
+            // 1. Check for YouTube
+            const ytRegex = /^(?:https?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})/;
+            const match = rawText.match(ytRegex);
+            
+            if (match && match[1]) {
+                return `<iframe src="https://www.youtube.com/embed/${match[1]}" allowfullscreen></iframe>`;
+            }
+
+            // 2. Check for Image
+            const imgRegex = /\.(jpg|jpeg|png|gif|webp)$/i;
+            if (imgRegex.test(rawText.trim())) {
+                return `<img src="${rawText.trim()}" alt="Shared Image" />`;
+            }
+
+            // 3. Plain Text (Convert newlines to breaks)
+            return rawText.replace(/\n/g, '<br>');
+        }
+
+        // --- SUBMIT POST ---
+        submitBtn.addEventListener('click', async () => {
+            const text = postInput.value.trim();
             if (!text) return;
+
+            submitBtn.disabled = true;
+            loader.style.display = 'block';
 
             try {
                 await db.collection('posts').add({
                     content: text,
                     parsedHtml: parseContent(text),
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    uid: firebase.auth().currentUser ? firebase.auth().currentUser.uid : 'anonymous'
+                    uid: 'user_' + Math.random().toString(36).substr(2, 9) // Simple random ID for demo
                 });
-                inputField.value = ''; // Clear input
+                
+                // Clear and close
+                postInput.value = '';
+                modal.style.display = 'none';
             } catch (error) {
                 console.error("Error adding post: ", error);
                 alert("Failed to post. Check console.");
+            } finally {
+                submitBtn.disabled = false;
+                loader.style.display = 'none';
             }
         });
 
-        // --- LISTEN FOR UPDATES ---
+        // --- LISTEN FOR UPDATES (The Feed) ---
         db.collection('posts').orderBy('timestamp', 'desc').limit(50).onSnapshot((snapshot) => {
-            feedDiv.innerHTML = '';
+            feedContainer.innerHTML = '';
+            
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                const div = document.createElement('div');
-                div.className = 'post-card';
-                div.innerHTML = data.parsedHtml || `<div class="post-text">${data.content}</div>`;
-                feedDiv.appendChild(div);
+                
+                const card = document.createElement('div');
+                card.className = 'post-card';
+                
+                // Generate a random avatar color based on UID length or hash
+                const colors = ['#e056a0', '#00c4b4', '#fbc531', '#4facfe'];
+                const avatarColor = colors[data.uid.length % colors.length];
+                
+                // Format Date and Time
+                let timeString = "Just now";
+                if (data.timestamp) {
+                    const dateObj = data.timestamp.toDate();
+                    timeString = dateObj.toLocaleDateString(undefined, { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                    }) + ' at ' + dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                }
+
+                card.innerHTML = `
+                    <div class="post-header">
+                        <div class="avatar" style="background:${avatarColor}">${String.fromCharCode(65 + (data.uid.length % 26))}</div>
+                        <div class="user-meta">
+                            <h4>User ${data.uid.substring(0, 5)}</h4>
+                            <span class="timestamp">${timeString}</span>
+                        </div>
+                    </div>
+                    <div class="post-text">${data.parsedHtml || data.content}</div>
+                `;
+                
+                feedContainer.appendChild(card);
             });
         });
 
