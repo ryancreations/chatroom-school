@@ -27,7 +27,7 @@
         .friend-item.active .status-dot { border-color: #3F4147; }
         .online .status-dot { background: #3BA55C; }
         
-        .avatar { width: 32px; height: 32px; background: #5865F2; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; overflow: hidden; }
+        .avatar { width: 32px; height: 32px; background: #5865F2; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; overflow: hidden; flex-shrink: 0; }
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
 
         .add-friend-section { padding: 10px; border-top: 1px solid #232428; }
@@ -42,8 +42,16 @@
         .message { max-width: 70%; padding: 10px 15px; border-radius: 18px; word-wrap: break-word; background: #40444B; position: relative; }
         .msg-self { align-self: flex-end; border-bottom-right-radius: 4px; }
         .msg-other { align-self: flex-start; border-bottom-left-radius: 4px; }
-        .msg-sender { font-size: 11px; color: #b9bbbe; margin-bottom: 4px; font-weight: bold; }
         
+        /* Dynamic Name Styles */
+        .msg-sender { font-size: 12px; margin-bottom: 4px; font-weight: bold; }
+        .gradient-name {
+            background: linear-gradient(to right, #ff00cc, #333399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
         /* Link Embeds */
         .link-embed { 
             background: #2B2D31; border-radius: 8px; padding: 10px; margin-top: 5px; 
@@ -105,12 +113,15 @@
         #settings-panel {
             position: absolute; top: 50px; left: 10px; background: #2B2D31; 
             padding: 15px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            z-index: 50; display: none; width: 200px;
+            z-index: 50; display: none; width: 220px;
         }
         .settings-header { font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #40444B; padding-bottom: 5px; }
         .setting-row { display: flex; justify-content: space-between; margin-bottom: 8px; align-items: center; }
-        .setting-row input { width: 120px; padding: 5px; font-size: 12px; margin: 0; }
-        .save-btn { background: #3BA55C; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; width: auto; }
+        .setting-row label { font-size: 12px; color: #b9bbbe; }
+        .setting-row input[type="text"] { width: 100px; padding: 5px; font-size: 12px; margin: 0; }
+        .setting-row input[type="color"] { width: 30px; height: 30px; border: none; padding: 0; background: none; cursor: pointer; }
+        .checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 12px; cursor: pointer; }
+        .save-btn { background: #3BA55C; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; width: 100%; margin-top: 5px; }
 
         #emoji-picker { position: absolute; bottom: 60px; left: 20px; z-index: 10; }
         
@@ -164,11 +175,27 @@
         <!-- Settings Panel -->
         <div id="settings-panel">
             <div class="settings-header">Edit Profile</div>
+            
             <div class="setting-row">
                 <label>Username:</label>
                 <input type="text" id="new-username-input" placeholder="New Name">
             </div>
-            <button class="save-btn" onclick="updateUsername()">Save</button>
+            
+            <div class="setting-row">
+                <label>Avatar URL:</label>
+                <input type="text" id="new-avatar-url" placeholder="Image URL...">
+            </div>
+            
+            <div class="setting-row">
+                <label>Name Color:</label>
+                <input type="color" id="name-color-picker" value="#ffffff">
+            </div>
+            
+            <label class="checkbox-row">
+                <input type="checkbox" id="gradient-toggle"> Enable Gradient
+            </label>
+            
+            <button class="save-btn" onclick="updateProfile()">Save Changes</button>
         </div>
     </div>
 
@@ -249,17 +276,14 @@
 <div id="emoji-picker"></div>
 
 <script>
-   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyBPC0x93NkRWCxMUA0c8xkS-jQa2IdbysI",
-  authDomain: "schoolchat-7f5a5.firebaseapp.com",
-  databaseURL: "https://schoolchat-7f5a5-default-rtdb.firebaseio.com",
-  projectId: "schoolchat-7f5a5",
-  storageBucket: "schoolchat-7f5a5.firebasestorage.app",
-  messagingSenderId: "752691397853",
-  appId: "1:752691397853:web:b4acd05e0259979edfc734",
-  measurementId: "G-QS6SVMF7FE"
-};
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT.firebaseapp.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT.appspot.com",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
@@ -288,9 +312,18 @@ const firebaseConfig = {
     function loadUserData() {
         db.collection("users").doc(currentUser.uid).onSnapshot(doc => {
             const data = doc.data();
-            document.getElementById('my-username-display').innerText = data.username || currentUser.email.split('@')[0];
-            document.getElementById('new-username-input').value = data.username || "";
+            const nameEl = document.getElementById('my-username-display');
+            nameEl.innerText = data.username || currentUser.email.split('@')[0];
             
+            // Apply styling
+            nameEl.style.color = data.nameColor || "#FFFFFF";
+            nameEl.className = data.gradientEnabled ? "gradient-name" : "";
+            
+            document.getElementById('new-username-input').value = data.username || "";
+            document.getElementById('new-avatar-url').value = data.photoURL || "";
+            document.getElementById('name-color-picker').value = data.nameColor || "#ffffff";
+            document.getElementById('gradient-toggle').checked = data.gradientEnabled || false;
+
             // Update Avatar
             const avatarEl = document.getElementById('my-avatar-sidebar');
             if(data.photoURL) {
@@ -301,15 +334,21 @@ const firebaseConfig = {
         });
     }
 
-    // USERNAME UPDATE
-    function updateUsername() {
+    // PROFILE UPDATE
+    function updateProfile() {
         const newName = document.getElementById('new-username-input').value.trim();
-        if(newName) {
-            db.collection("users").doc(currentUser.uid).update({
-                username: newName.toLowerCase()
-            });
-            toggleSettings();
-        }
+        const newAvatar = document.getElementById('new-avatar-url').value.trim();
+        const newColor = document.getElementById('name-color-picker').value;
+        const isGradient = document.getElementById('gradient-toggle').checked;
+
+        const updates = {};
+        if(newName) updates.username = newName.toLowerCase();
+        if(newAvatar) updates.photoURL = newAvatar;
+        updates.nameColor = newColor;
+        updates.gradientEnabled = isGradient;
+
+        db.collection("users").doc(currentUser.uid).update(updates);
+        toggleSettings();
     }
 
     function toggleSettings() {
@@ -332,8 +371,6 @@ const firebaseConfig = {
     }
 
     function enterChat() {
-        // Save lobby settings to global session or just keep in memory for this tab
-        // For simplicity, we just hide the lobby
         document.getElementById('lobby-screen').style.display = 'none';
     }
 
@@ -381,8 +418,11 @@ const firebaseConfig = {
                             </div>
                         `;
                     } else {
+                        // Get styling for the sender
+                        const senderStyle = getSenderStyle(msg.senderId);
+                        
                         div.innerHTML = `
-                            ${!isMe ? `<div class="msg-sender">${getUsername(msg.senderId)}</div>` : ''}
+                            ${!isMe ? `<div class="msg-sender" style="${senderStyle}">${getUsername(msg.senderId)}</div>` : ''}
                             ${msg.text}
                         `;
                     }
@@ -392,9 +432,14 @@ const firebaseConfig = {
             });
     }
 
+    function getSenderStyle(uid) {
+        // In a real app, you'd cache this. Here we just return empty string 
+        // because fetching every user for every message is slow without caching.
+        // However, we can try to fetch if not cached.
+        return ""; 
+    }
+
     function getUsername(uid) {
-        // Simple cache or fetch could be added here, but for now we rely on friend list rendering
-        // This is a placeholder, real implementation would query DB
         return "User"; 
     }
 
@@ -403,10 +448,8 @@ const firebaseConfig = {
         const target = document.getElementById('friend-email').value.trim();
         if(!target) return;
 
-        // Find user by email or ID
         db.collection("users").where("email", "==", target).get().then(snap => {
             if(snap.empty) {
-                // Try searching by ID (partial match)
                 db.collection("users").where("username", ">=", target).limit(1).get().then(snap2 => {
                      if(!snap2.empty) {
                          const friendUid = snap2.docs[0].id;
@@ -463,7 +506,6 @@ const firebaseConfig = {
     function switchChat(chatId) {
         currentChatId = chatId;
         document.getElementById('current-chat-name').innerText = chatId === "general" ? "# General" : "Direct Message";
-        // Highlight logic omitted for brevity
     }
 
     // ALERTS
@@ -482,6 +524,7 @@ const firebaseConfig = {
                 const alert = snap.docs[0].data();
                 // Only show if it's recent (last 5 seconds)
                 if(Date.now() - alert.timestamp < 5000) {
+                    // Show if it's from someone else OR if it's from me (self-alerts enabled)
                     const el = document.getElementById(`${alert.type}-alert`);
                     if(el) {
                         el.style.display = "flex";
@@ -506,7 +549,6 @@ const firebaseConfig = {
         const iframe = document.getElementById('stealth-video');
         if(layer.style.display === 'none' || layer.style.display === '') {
             layer.style.display = 'block';
-            // Reset iframe to ensure it's playing (hacky but works for stealth)
             iframe.src = iframe.src; 
         } else {
             layer.style.display = 'none';
@@ -515,8 +557,6 @@ const firebaseConfig = {
 
     // VIDEO CALL
     function startCall() {
-        // Simplified: In a real app, you'd get the other user's PeerID
-        // Here we just ask the user to enter a Peer ID or use a simple broadcast
         const peerId = prompt("Enter Friend's Peer ID to call:");
         if(peerId) {
             connectCall(peerId);
