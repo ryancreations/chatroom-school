@@ -7,8 +7,6 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script> <!-- ADDED AUTH SCRIPT -->
-    
     <style>
         body {
             background-color: #121212;
@@ -121,7 +119,7 @@
     </div>
 
     <script>
-       // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyBPC0x93NkRWCxMUA0c8xkS-jQa2IdbysI",
   authDomain: "schoolchat-7f5a5.firebaseapp.com",
@@ -133,10 +131,8 @@ const firebaseConfig = {
   measurementId: "G-QS6SVMF7FE"
 };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        const auth = firebase.auth(); // GET AUTH INSTANCE
 
         // --- DOM ELEMENTS ---
         const feedDiv = document.getElementById('feed');
@@ -169,24 +165,11 @@ const firebaseConfig = {
             if (!text) return;
 
             try {
-                // Get current user safely
-                let currentUser = auth.currentUser;
-                let uid = 'anonymous';
-                
-                if (currentUser) {
-                    uid = currentUser.uid;
-                } else {
-                    // Optional: Auto sign in as anonymous if not signed in
-                    await auth.signInAnonymously();
-                    currentUser = auth.currentUser;
-                    uid = currentUser.uid;
-                }
-
                 await db.collection('posts').add({
                     content: text,
                     parsedHtml: parseContent(text),
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    uid: uid
+                    uid: firebase.auth().currentUser ? firebase.auth().currentUser.uid : 'anonymous'
                 });
                 inputField.value = ''; // Clear input
             } catch (error) {
@@ -202,7 +185,6 @@ const firebaseConfig = {
                 const data = doc.data();
                 const div = document.createElement('div');
                 div.className = 'post-card';
-                // Use parsedHtml if available, otherwise fallback to plain text
                 div.innerHTML = data.parsedHtml || `<div class="post-text">${data.content}</div>`;
                 feedDiv.appendChild(div);
             });
