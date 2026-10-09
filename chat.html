@@ -3,594 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>School & Post Hub</title>
-    
+    <title>Media Hub</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script> <!-- ADDED AUTH SCRIPT -->
+    
     <style>
-        :root {
-            --bg-color: #18191a; 
-            --card-bg: #242526;
-            --chat-bg: #1e1f20;
-            --text-main: #e4e6eb;
-            --text-sub: #b0b3b8;
-            --accent: #0084ff; 
-            --border: #3e4042;
-            --msg-sent: #0084ff;
-            --msg-received: #3e4042;
-        }
-
         body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            padding-top: 60px;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* --- NAVIGATION BAR --- */
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 56px;
-            background: var(--card-bg);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 16px;
-            box-sizing: border-box;
-            z-index: 1000;
-        }
-
-        .nav-logo {
-            font-weight: bold;
-            font-size: 1.2rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .nav-tabs {
-            display: flex;
-            gap: 10px;
-        }
-
-        .tab-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-sub);
-            font-size: 1rem;
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 600;
-        }
-
-        .tab-btn.active {
-            background: rgba(0, 132, 255, 0.2);
-            color: var(--accent);
-        }
-
-        .tab-btn:hover:not(.active) {
-            background: rgba(255,255,255,0.05);
-        }
-
-        /* --- MAIN LAYOUT --- */
-        #app-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            max-width: 900px;
-            width: 100%;
-            margin: 0 auto;
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* --- CHAT VIEW --- */
-        #chat-view {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
             padding: 20px;
-            box-sizing: border-box;
-        }
-
-        #messages-area {
-            flex: 1;
-            overflow-y: auto;
-            padding-bottom: 20px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-        }
-
-        .message {
-            max-width: 80%;
-            padding: 10px 14px;
-            border-radius: 18px;
-            font-size: 0.95rem;
-            line-height: 1.4;
-            word-wrap: break-word;
-            position: relative;
-        }
-
-        .message.sent {
-            align-self: flex-end;
-            background-color: var(--msg-sent);
-            color: white;
-            border-bottom-right-radius: 4px;
-        }
-
-        .message.received {
-            align-self: flex-start;
-            background-color: var(--msg-received);
-            color: var(--text-main);
-            border-bottom-left-radius: 4px;
-        }
-
-        .message-meta {
-            font-size: 0.7rem;
-            opacity: 0.7;
-            margin-top: 4px;
-            text-align: right;
-        }
-
-        .message img {
-            max-width: 100%;
-            border-radius: 12px;
-            margin-top: 8px;
-            display: block;
-        }
-
-        .message iframe {
-            width: 100%;
-            height: 250px;
-            border: none;
-            border-radius: 8px;
-            margin-top: 8px;
-        }
-
-        #chat-input-area {
-            display: flex;
-            gap: 10px;
-            padding-top: 10px;
-            border-top: 1px solid var(--border);
-            margin-top: 10px;
-        }
-
-        #chat-input {
-            flex: 1;
-            background: var(--chat-bg);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 12px 16px;
-            color: white;
-            font-size: 1rem;
-            outline: none;
-            resize: none;
-            height: 45px;
-            min-height: 45px;
-        }
-
-        #chat-input:focus {
-            border-color: var(--accent);
-        }
-
-        .send-btn {
-            background: var(--accent);
-            border: none;
-            border-radius: 50%;
-            width: 45px;
-            height: 45px;
-            color: white;
-            cursor: pointer;
-            display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
         }
 
-        /* --- FEED VIEW --- */
-        #feed-view {
-            display: none; /* Hidden by default */
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            box-sizing: border-box;
+        h1 { color: #bb86fc; margin-bottom: 30px; }
+
+        /* --- FEED STYLES --- */
+        #feed {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding-bottom: 100px; /* Space for the stealth box */
         }
 
         .post-card {
-            background: var(--card-bg);
+            background: #1f1f1f;
             border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border);
+            padding: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            border: 1px solid #333;
+            word-wrap: break-word;
         }
 
-        .post-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 12px;
+        .post-text {
+            margin-bottom: 10px;
+            font-size: 1rem;
+            line-height: 1.4;
         }
 
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #555;
-            margin-right: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: white;
-            font-size: 1.2rem;
-        }
-
-        .user-info h4 { margin: 0; font-size: 0.95rem; }
-        
-        .timestamp {
-            color: var(--text-sub);
-            font-size: 0.75rem;
-            margin-top: 2px;
-            display: block;
-        }
-
-        .post-content {
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-
-        .post-content img {
+        .media-container img {
             max-width: 100%;
-            border-radius: 8px;
-            margin-top: 10px;
-            display: block;
+            border-radius: 4px;
+            margin-top: 5px;
         }
 
-        .post-content iframe {
+        .media-container iframe {
             width: 100%;
             height: 315px;
             border: none;
-            border-radius: 8px;
-            margin-top: 10px;
-            display: block;
+            border-radius: 4px;
+            margin-top: 5px;
         }
 
-        /* --- POST MODAL (WINDOW THINGY) --- */
-        #post-modal {
-            display: none;
+        /* --- STEALTH INPUT BOX (Bottom Right) --- */
+        #stealth-box {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-window {
-            background: var(--card-bg);
-            width: 90%;
-            max-width: 500px;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            background: #2d2d2d;
+            padding: 15px;
             border-radius: 12px;
-            padding: 20px;
-            border: 1px solid var(--border);
-            position: relative;
-            animation: popIn 0.2s ease-out;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            border: 1px solid #444;
+            z-index: 1000;
+            transition: all 0.3s ease;
         }
 
-        @keyframes popIn {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+        #stealth-box:hover {
+            transform: translateY(-5px);
+            border-color: #bb86fc;
         }
 
-        .close-modal {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: transparent;
-            border: none;
-            color: var(--text-sub);
-            font-size: 1.5rem;
-            cursor: pointer;
+        #stealth-input {
+            width: 90%;
+            padding: 10px;
+            background: #121212;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 4px;
+            margin-bottom: 10px;
         }
 
-        textarea.modal-input {
+        #stealth-btn {
             width: 100%;
-            background: #3a3b3c;
+            padding: 10px;
+            background: #bb86fc;
             border: none;
-            border-radius: 8px;
-            padding: 12px;
-            color: white;
-            font-size: 1rem;
-            resize: none;
-            min-height: 120px;
-            box-sizing: border-box;
-            outline: none;
-        }
-
-        textarea.modal-input:focus { box-shadow: 0 0 0 2px var(--accent); }
-
-        .modal-footer {
-            margin-top: 15px;
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .btn-post {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 10px 24px;
-            border-radius: 6px;
+            color: black;
             font-weight: bold;
             cursor: pointer;
-            font-size: 1rem;
+            border-radius: 4px;
         }
 
-        /* Scrollbar styling */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-color); }
-        ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #777; }
+        #stealth-btn:hover { background: #9965f4; }
 
+        .label { font-size: 0.8rem; color: #aaa; margin-bottom: 5px; display: block; }
     </style>
 </head>
 <body>
 
-    <!-- NAVIGATION -->
-    <nav>
-        <div class="nav-logo">🏫 <span>School</span>Hub</div>
-        <div class="nav-tabs">
-            <button class="tab-btn active" onclick="switchTab('chat')">💬 Chat</button>
-            <button class="tab-btn" onclick="switchTab('feed')">📰 Feed</button>
-        </div>
-        <button class="tab-btn primary" id="open-post-btn" style="background: var(--accent); color: white;">+ New Post</button>
-    </nav>
+    <h1>Media Share</h1>
+    <div id="feed">Loading...</div>
 
-    <!-- MAIN APP CONTAINER -->
-    <div id="app-container">
-        
-        <!-- CHAT SECTION -->
-        <div id="chat-view">
-            <div id="messages-area">
-                <!-- Messages load here -->
-            </div>
-            
-            <div id="chat-input-area">
-                <textarea id="chat-input" placeholder="Type a message... (Paste links/images!)"></textarea>
-                <button class="send-btn" id="chat-send-btn">➤</button>
-            </div>
-        </div>
-
-        <!-- FEED SECTION -->
-        <div id="feed-view">
-            <!-- Posts load here -->
-        </div>
-
-    </div>
-
-    <!-- POST MODAL WINDOW -->
-    <div id="post-modal">
-        <div class="modal-window">
-            <button class="close-modal" id="close-modal">&times;</button>
-            <h3 style="margin-top:0;">Create Post</h3>
-            <textarea class="modal-input" id="post-input" placeholder="What's on your mind? Share pics, videos, or thoughts..."></textarea>
-            <div class="modal-footer">
-                <button class="btn-post" id="submit-post">Post to Feed</button>
-            </div>
-        </div>
+    <!-- STEALTH INPUT BOX -->
+    <div id="stealth-box">
+        <span class="label">Add Link or Text</span>
+        <input type="text" id="stealth-input" placeholder="Paste YouTube/Image link here...">
+        <button id="stealth-btn">Post</button>
     </div>
 
     <script>
-        // --- FIREBASE CONFIG ---
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
+       // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBPC0x93NkRWCxMUA0c8xkS-jQa2IdbysI",
+  authDomain: "schoolchat-7f5a5.firebaseapp.com",
+  databaseURL: "https://schoolchat-7f5a5-default-rtdb.firebaseio.com",
+  projectId: "schoolchat-7f5a5",
+  storageBucket: "schoolchat-7f5a5.firebasestorage.app",
+  messagingSenderId: "752691397853",
+  appId: "1:752691397853:web:b4acd05e0259979edfc734",
+  measurementId: "G-QS6SVMF7FE"
+};
 
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const auth = firebase.auth(); // GET AUTH INSTANCE
 
         // --- DOM ELEMENTS ---
-        const chatView = document.getElementById('chat-view');
-        const feedView = document.getElementById('feed-view');
-        const messagesArea = document.getElementById('messages-area');
-        const chatInput = document.getElementById('chat-input');
-        const chatSendBtn = document.getElementById('chat-send-btn');
-        const modal = document.getElementById('post-modal');
-        const openPostBtn = document.getElementById('open-post-btn');
-        const closePostBtn = document.getElementById('close-modal');
-        const postInput = document.getElementById('post-input');
-        const submitPostBtn = document.getElementById('submit-post');
+        const feedDiv = document.getElementById('feed');
+        const inputField = document.getElementById('stealth-input');
+        const postBtn = document.getElementById('stealth-btn');
 
-        // --- TAB SWITCHING LOGIC ---
-        function switchTab(tabName) {
-            const tabs = document.querySelectorAll('.tab-btn');
-            tabs.forEach(t => t.classList.remove('active'));
-            
-            if (tabName === 'chat') {
-                chatView.style.display = 'flex';
-                feedView.style.display = 'none';
-                tabs[0].classList.add('active');
-            } else {
-                chatView.style.display = 'none';
-                feedView.style.display = 'block';
-                tabs[1].classList.add('active');
-            }
-        }
-
-        // --- MEDIA PARSING HELPER (FIXED FOR YOUTUBE & IMAGES) ---
-        function parseContent(rawText) {
-            const trimmed = rawText.trim();
-            
-            // 1. Check for YouTube (Handles various URL formats)
+        // --- HELPER: Parse Links ---
+        function parseContent(rawInput) {
+            // Check for YouTube
             const ytRegex = /^(?:https?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})/;
-            const match = trimmed.match(ytRegex);
+            const match = rawInput.match(ytRegex);
             
             if (match && match[1]) {
-                return `<iframe src="https://www.youtube.com/embed/${match[1]}" allowfullscreen></iframe>`;
+                return `<div class="media-container"><iframe src="https://www.youtube.com/embed/${match[1]}" allowfullscreen></iframe></div>`;
             }
 
-            // 2. Check for Image
+            // Check for Image
             const imgRegex = /\.(jpg|jpeg|png|gif|webp)$/i;
-            if (imgRegex.test(trimmed)) {
-                return `<img src="${trimmed}" alt="Shared Image" />`;
+            if (imgRegex.test(rawInput.trim())) {
+                return `<div class="media-container"><img src="${rawInput.trim()}" alt="Shared Image"></div>`;
             }
 
-            // 3. Plain Text
-            return trimmed.replace(/\n/g, '<br>');
+            // Plain Text
+            return `<div class="post-text">${rawInput}</div>`;
         }
 
-        // --- SEND MESSAGE TO CHAT ---
-        async function sendChatMessage() {
-            const text = chatInput.value.trim();
+        // --- ADD POST TO DATABASE ---
+        postBtn.addEventListener('click', async () => {
+            const text = inputField.value.trim();
             if (!text) return;
 
             try {
-                await db.collection('chat').add({
-                    content: text,
-                    parsedHtml: parseContent(text),
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    uid: 'user_' + Math.random().toString(36).substr(2, 9)
-                });
-                chatInput.value = '';
-            } catch (error) {
-                console.error("Error sending chat:", error);
-            }
-        }
+                // Get current user safely
+                let currentUser = auth.currentUser;
+                let uid = 'anonymous';
+                
+                if (currentUser) {
+                    uid = currentUser.uid;
+                } else {
+                    // Optional: Auto sign in as anonymous if not signed in
+                    await auth.signInAnonymously();
+                    currentUser = auth.currentUser;
+                    uid = currentUser.uid;
+                }
 
-        chatSendBtn.addEventListener('click', sendChatMessage);
-        chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendChatMessage();
-            }
-        });
-
-        // --- CREATE POST (MODAL) ---
-        openPostBtn.addEventListener('click', () => {
-            modal.style.display = 'flex';
-            postInput.focus();
-        });
-
-        closePostBtn.addEventListener('click', () => {
-            modal.style.display = 'none';
-            postInput.value = '';
-        });
-
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
-        }
-
-        submitPostBtn.addEventListener('click', async () => {
-            const text = postInput.value.trim();
-            if (!text) return;
-
-            submitPostBtn.textContent = "Posting...";
-            submitPostBtn.disabled = true;
-
-            try {
                 await db.collection('posts').add({
                     content: text,
                     parsedHtml: parseContent(text),
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    uid: 'user_' + Math.random().toString(36).substr(2, 9)
+                    uid: uid
                 });
-                
-                postInput.value = '';
-                modal.style.display = 'none';
+                inputField.value = ''; // Clear input
             } catch (error) {
                 console.error("Error adding post: ", error);
-                alert("Failed to post.");
-            } finally {
-                submitPostBtn.textContent = "Post to Feed";
-                submitPostBtn.disabled = false;
+                alert("Failed to post. Check console.");
             }
         });
 
-        // --- LISTENERS (REAL-TIME UPDATES) ---
-        
-        // 1. Chat Listener
-        db.collection('chat').orderBy('timestamp', 'asc').onSnapshot((snapshot) => {
-            messagesArea.innerHTML = '';
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                const msgDiv = document.createElement('div');
-                msgDiv.className = `message ${data.uid.startsWith('user_') ? 'received' : 'sent'}`;
-                
-                // Simple time formatting
-                let timeStr = "";
-                if(data.timestamp) {
-                    timeStr = new Date(data.timestamp.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                }
-
-                msgDiv.innerHTML = `
-                    ${data.parsedHtml || data.content}
-                    <div class="message-meta">${timeStr}</div>
-                `;
-                messagesArea.appendChild(msgDiv);
-            });
-            // Auto scroll to bottom
-            messagesArea.scrollTop = messagesArea.scrollHeight;
-        });
-
-        // 2. Feed Listener
+        // --- LISTEN FOR UPDATES ---
         db.collection('posts').orderBy('timestamp', 'desc').limit(50).onSnapshot((snapshot) => {
-            feedView.innerHTML = '';
-            
+            feedDiv.innerHTML = '';
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                
-                const card = document.createElement('div');
-                card.className = 'post-card';
-                
-                const colors = ['#e056a0', '#00c4b4', '#fbc531', '#4facfe'];
-                const avatarColor = colors[data.uid.length % colors.length];
-                
-                let timeString = "Just now";
-                if (data.timestamp) {
-                    const dateObj = data.timestamp.toDate();
-                    timeString = dateObj.toLocaleDateString(undefined, { 
-                        month: 'short', 
-                        day: 'numeric', 
-                        year: 'numeric' 
-                    }) + ' at ' + dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                }
-
-                card.innerHTML = `
-                    <div class="post-header">
-                        <div class="avatar" style="background:${avatarColor}">${String.fromCharCode(65 + (data.uid.length % 26))}</div>
-                        <div class="user-info">
-                            <h4>User ${data.uid.substring(0, 5)}</h4>
-                            <span class="timestamp">${timeString}</span>
-                        </div>
-                    </div>
-                    <div class="post-content">${data.parsedHtml || data.content}</div>
-                `;
-                
-                feedView.appendChild(card);
+                const div = document.createElement('div');
+                div.className = 'post-card';
+                // Use parsedHtml if available, otherwise fallback to plain text
+                div.innerHTML = data.parsedHtml || `<div class="post-text">${data.content}</div>`;
+                feedDiv.appendChild(div);
             });
         });
 
