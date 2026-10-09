@@ -3,258 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>School & Post Hub</title>
-    
-    <!-- Firebase SDKs -->
+    <title>SchoolChat - Login</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
     <style>
-        :root {
-            --bg-color: #18191a; /* FB Dark Mode */
-            --card-bg: #242526;
-            --text-main: #e4e6eb;
-            --text-sub: #b0b3b8;
-            --accent: #0084ff; /* FB Blue */
-            --border: #3e4042;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding-top: 60px; /* Space for navbar */
-            padding-bottom: 80px;
-        }
-
-        /* --- NAVIGATION BAR --- */
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 56px;
-            background: var(--card-bg);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 16px;
-            box-sizing: border-box;
-            z-index: 1000;
-        }
-
-        .nav-logo {
-            font-weight: bold;
-            font-size: 1.2rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .nav-logo span { color: var(--accent); }
-
-        .nav-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-main);
-            font-size: 1rem;
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.2s;
-            font-weight: 600;
-        }
-
-        .nav-btn:hover { background: rgba(255,255,255,0.1); }
-        .nav-btn.primary { background: var(--accent); color: white; }
-        .nav-btn.primary:hover { background: #0073e6; }
-
-        /* --- FEED STYLES --- */
-        #feed-container {
-            max-width: 680px;
-            margin: 20px auto;
-            padding: 0 10px;
-        }
-
-        .post-card {
-            background: var(--card-bg);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 16px;
-            border: 1px solid var(--border);
-            position: relative;
-        }
-
-        .post-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #555;
-            margin-right: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: white;
-        }
-
-        .user-meta h4 { margin: 0; font-size: 0.95rem; }
-        
-        /* TIMESTAMP STYLE */
-        .timestamp {
-            color: var(--text-sub);
-            font-size: 0.75rem;
-            margin-top: 2px;
-            display: block;
-        }
-
-        .post-text {
-            font-size: 0.95rem;
-            line-height: 1.4;
-            margin-bottom: 10px;
-            word-wrap: break-word;
-        }
-
-        .media-container img {
-            max-width: 100%;
-            border-radius: 8px;
-            margin-top: 5px;
-            display: block;
-        }
-
-        .media-container iframe {
-            width: 100%;
-            height: 315px;
-            border: none;
-            border-radius: 8px;
-            margin-top: 5px;
-        }
-
-        /* --- MODAL (POST BOX) --- */
-        #post-modal {
-            display: none; /* Hidden by default */
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background: var(--card-bg);
-            width: 90%;
-            max-width: 500px;
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid var(--border);
-            position: relative;
-        }
-
-        .close-modal {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: transparent;
-            border: none;
-            color: var(--text-sub);
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-
-        textarea {
-            width: 100%;
-            background: #3a3b3c;
-            border: none;
-            border-radius: 8px;
-            padding: 12px;
-            color: white;
-            font-size: 1rem;
-            resize: none;
-            min-height: 100px;
-            box-sizing: border-box;
-            outline: none;
-        }
-
-        textarea:focus { box-shadow: 0 0 0 2px var(--accent); }
-
-        .modal-actions {
-            margin-top: 15px;
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .btn-post {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 10px 24px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-        
-        .btn-post:disabled { background: #555; cursor: not-allowed; }
-
-        /* Loading Spinner */
-        .loader {
-            border: 3px solid rgba(255,255,255,0.1);
-            border-top: 3px solid var(--accent);
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-            display: none;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #313338; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background-color: #383A40; padding: 30px; border-radius: 12px; width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; }
+        h2 { margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: none; background-color: #1E1F22; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-google { background-color: white; color: #444; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-primary { background-color: #5865F2; color: white; }
+        .preview-img { width: 100%; height: 100px; object-fit: cover; border-radius: 6px; margin-top: 5px; background: #2B2D31; }
+        .hidden { display: none; }
+        #error-msg { color: #ed4245; font-size: 12px; margin-bottom: 10px; min-height: 15px;}
     </style>
 </head>
 <body>
 
-    <!-- NAVIGATION -->
-    <nav>
-        <div class="nav-logo" onclick="window.scrollTo(0,0)">
-            🏫 <span>School</span>Chat
-        </div>
-        <button class="nav-btn primary" id="open-post-btn">+ Create Post</button>
-    </nav>
+<div class="container" id="login-box">
+    <h2 id="form-title">Login to SchoolChat</h2>
+    <div id="error-msg"></div>
 
-    <!-- POST MODAL -->
-    <div id="post-modal">
-        <div class="modal-content">
-            <button class="close-modal" id="close-modal">&times;</button>
-            <h3 style="margin-top:0;">Create Post</h3>
-            <textarea id="post-input" placeholder="What's on your mind? (Paste links here!)"></textarea>
-            <div class="modal-actions">
-                <button class="btn-post" id="submit-post">Post</button>
-            </div>
-            <div class="loader" id="loader"></div>
-        </div>
-    </div>
+    <!-- Background Selection -->
+    <input type="text" id="lobby-bg-url" placeholder="Paste Image URL for Chat Background..." onchange="updateLobbyPreview()">
+    <img id="lobby-preview" class="preview-img" style="height: 100px;">
 
-    <!-- FEED -->
-    <div id="feed-container">
-        <div style="text-align:center; padding: 20px; color: var(--text-sub);">Loading feed...</div>
-    </div>
+    <button class="btn-google" onclick="loginWithGoogle()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> 
+        Continue with Google
+    </button>
 
-    <script>
-       // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    <div class="divider" style="margin: 20px 0; color: #888; font-size: 12px; text-transform: uppercase;">or use email</div>
+
+    <input type="text" id="username" placeholder="Choose a Username" autocomplete="off">
+    <input type="email" id="email" placeholder="Email Address" autocomplete="off">
+    <input type="password" id="password" placeholder="Password" autocomplete="off">
+
+    <button id="action-btn" class="btn-primary" onclick="handleAuth()">Login</button>
+    <button class="btn-secondary" style="background:transparent; color:#00AFF4;" onclick="toggleMode()">Create an account</button>
+</div>
+
+<script>
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyBPC0x93NkRWCxMUA0c8xkS-jQa2IdbysI",
   authDomain: "schoolchat-7f5a5.firebaseapp.com",
@@ -265,125 +58,113 @@ const firebaseConfig = {
   appId: "1:752691397853:web:b4acd05e0259979edfc734",
   measurementId: "G-QS6SVMF7FE"
 };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+    let isLoginMode = true;
 
-        // --- DOM ELEMENTS ---
-        const feedContainer = document.getElementById('feed-container');
-        const modal = document.getElementById('post-modal');
-        const openBtn = document.getElementById('open-post-btn');
-        const closeBtn = document.getElementById('close-modal');
-        const postInput = document.getElementById('post-input');
-        const submitBtn = document.getElementById('submit-post');
-        const loader = document.getElementById('loader');
+    function toggleMode() {
+        isLoginMode = !isLoginMode;
+        document.getElementById('action-btn').textContent = isLoginMode ? "Login" : "Register";
+        document.querySelector('.btn-secondary').textContent = isLoginMode ? "Create an account" : "Have an account? Login";
+        document.getElementById('form-title').textContent = isLoginMode ? "Login to SchoolChat" : "Create Account";
+        document.getElementById('error-msg').innerText = "";
+    }
 
-        // --- MODAL LOGIC ---
-        openBtn.addEventListener('click', () => {
-            modal.style.display = 'flex';
-            postInput.focus();
-        });
+    function showError(msg) {
+        document.getElementById('error-msg').innerText = msg;
+    }
 
-        closeBtn.addEventListener('click', () => {
-            modal.style.display = 'none';
-            postInput.value = '';
-        });
-
-        // Close modal if clicking outside
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
+    function updateLobbyPreview() {
+        const url = document.getElementById('lobby-bg-url').value;
+        const preview = document.getElementById('lobby-preview');
+        if(url) {
+            preview.src = url;
+        } else {
+            preview.src = "";
         }
+    }
 
-        // --- HELPER: Parse Content (YouTube vs Image vs Text) ---
-        function parseContent(rawText) {
-            // 1. Check for YouTube
-            const ytRegex = /^(?:https?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})/;
-            const match = rawText.match(ytRegex);
+    function loginWithGoogle() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider).then((result) => {
+            const user = result.user;
+            // Save the background URL to the user's profile
+            const bgUrl = document.getElementById('lobby-bg-url').value;
             
-            if (match && match[1]) {
-                return `<iframe src="https://www.youtube.com/embed/${match[1]}" allowfullscreen></iframe>`;
-            }
-
-            // 2. Check for Image
-            const imgRegex = /\.(jpg|jpeg|png|gif|webp)$/i;
-            if (imgRegex.test(rawText.trim())) {
-                return `<img src="${rawText.trim()}" alt="Shared Image" />`;
-            }
-
-            // 3. Plain Text (Convert newlines to breaks)
-            return rawText.replace(/\n/g, '<br>');
-        }
-
-        // --- SUBMIT POST ---
-        submitBtn.addEventListener('click', async () => {
-            const text = postInput.value.trim();
-            if (!text) return;
-
-            submitBtn.disabled = true;
-            loader.style.display = 'block';
-
-            try {
-                await db.collection('posts').add({
-                    content: text,
-                    parsedHtml: parseContent(text),
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    uid: 'user_' + Math.random().toString(36).substr(2, 9) // Simple random ID for demo
-                });
-                
-                // Clear and close
-                postInput.value = '';
-                modal.style.display = 'none';
-            } catch (error) {
-                console.error("Error adding post: ", error);
-                alert("Failed to post. Check console.");
-            } finally {
-                submitBtn.disabled = false;
-                loader.style.display = 'none';
-            }
-        });
-
-        // --- LISTEN FOR UPDATES (The Feed) ---
-        db.collection('posts').orderBy('timestamp', 'desc').limit(50).onSnapshot((snapshot) => {
-            feedContainer.innerHTML = '';
-            
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                
-                const card = document.createElement('div');
-                card.className = 'post-card';
-                
-                // Generate a random avatar color based on UID length or hash
-                const colors = ['#e056a0', '#00c4b4', '#fbc531', '#4facfe'];
-                const avatarColor = colors[data.uid.length % colors.length];
-                
-                // Format Date and Time
-                let timeString = "Just now";
-                if (data.timestamp) {
-                    const dateObj = data.timestamp.toDate();
-                    timeString = dateObj.toLocaleDateString(undefined, { 
-                        month: 'short', 
-                        day: 'numeric', 
-                        year: 'numeric' 
-                    }) + ' at ' + dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                }
-
-                card.innerHTML = `
-                    <div class="post-header">
-                        <div class="avatar" style="background:${avatarColor}">${String.fromCharCode(65 + (data.uid.length % 26))}</div>
-                        <div class="user-meta">
-                            <h4>User ${data.uid.substring(0, 5)}</h4>
-                            <span class="timestamp">${timeString}</span>
-                        </div>
-                    </div>
-                    <div class="post-text">${data.parsedHtml || data.content}</div>
-                `;
-                
-                feedContainer.appendChild(card);
+            db.collection("users").doc(user.uid).set({
+                username: user.displayName || "User_" + Math.floor(Math.random()*1000),
+                email: user.email,
+                photoURL: user.photoURL,
+                lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+                status: "online",
+                nameColor: "#FFFFFF",
+                gradientEnabled: false,
+                customBackground: bgUrl // Store background here
+            }, { merge: true }).then(() => {
+                updateStatus(true);
+                enterApp();
             });
-        });
+        }).catch((error) => showError(error.message));
+    }
 
-    </script>
+    function handleAuth() {
+        const email = document.getElementById('email').value.trim();
+        const pass = document.getElementById('password').value.trim();
+        const username = document.getElementById('username').value.trim();
+        document.getElementById('error-msg').innerText = "";
+
+        if (!email || !pass) return showError("Please enter email and password.");
+
+        if (isLoginMode) {
+            auth.signInWithEmailAndPassword(email, pass).then((cred) => {
+                updateStatus(true);
+                enterApp();
+            }).catch((e) => showError(e.message));
+        } else {
+            if (!username) return showError("Please pick a username.");
+            
+            db.collection("users").where("username", "==", username.toLowerCase()).get().then((snap) => {
+                if (!snap.empty) return showError("Username already taken!");
+                
+                auth.createUserWithEmailAndPassword(email, pass).then((cred) => {
+                    cred.user.updateProfile({ displayName: username }).then(() => {
+                        const bgUrl = document.getElementById('lobby-bg-url').value;
+                        db.collection("users").doc(cred.user.uid).set({
+                            username: username.toLowerCase(),
+                            email: email,
+                            photoURL: "",
+                            friends: [],
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            status: "online",
+                            nameColor: "#FFFFFF",
+                            gradientEnabled: false,
+                            customBackground: bgUrl // Store background here
+                        });
+                        updateStatus(true);
+                        enterApp();
+                    });
+                }).catch((e) => showError(e.message));
+            });
+        }
+    }
+
+    function updateStatus(isOnline) {
+        if(auth.currentUser) {
+            db.collection("users").doc(auth.currentUser.uid).update({
+                status: isOnline ? "online" : "offline",
+                lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+    }
+
+    function enterApp() {
+        window.location.href = "chat.html";
+    }
+
+    window.addEventListener('beforeunload', () => updateStatus(false));
+</script>
+
 </body>
 </html>
