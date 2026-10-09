@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SchoolChat - Dashboard</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <style>
+        body { margin: 0; display: flex; height: 100vh; font-family: sans-serif; background: #313338; color: white; }
+        #sidebar { wwidth: 240px; background: #2B2D31; display: flex; flex-direction: column; padding: 20px; }
+        #chat-area { flex: 1; display: flex; flex-direction: column; }
+        #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; }
+        .msg { margin-bottom: 15px; }
+        .msg b { color: #00AFF4; display: block; }
+        .input-box { padding: 20px; background: #313338; }
+        input[type="text"] { width: 90%; padding: 15px; border-radius: 8px; border: none; background: #383A40; color: white; }
+        .friend-item { padding: 10px; cursor: pointer; border-radius: 5px; }
+        .friend-item:hover { background: #3F4147; }
+        img.gif { max-width: 200px; border-radius: 8px; display: block; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <h3>Friends</h3>
+    <input type="text" id="friend-email" placeholder="Friend's Email" style="width: 100%; margin-bottom: 10px;">
+    <button onclick="addFriend()">Add Friend</button>
+    <div id="friends-list"></div>
+    <button onclick="logout()" style="margin-top: auto;">Logout</button>
+</div>
+
+<div id="chat-area">
+    <div id="messages"></div>
+    <div class="input-box">
+        <input type="text" id="msg-input" placeholder="Type a message (or a GIF link)..." onkeypress="if(event.key==='Enter') sendMsg()">
+    </div>
+</div>
+
+<script>
+    // USE THE SAME FIREBASE CONFIG HERE
+    const firebaseConfig = { /* PASTE SAME CONFIG AS ABOVE */ };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    let currentUser = null;
+
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            currentUser = user;
+            loadMessages();
+            loadFriends();
+        } else {
+            window.location.href = "index.html";
+        }
+    });
+
+    function sendMsg() {
+        const text = document.getElementById('msg-input').value;
+        if (!text) return;
+
+        db.collection("global_chat").add({
+            user: currentUser.email,
+            text: text,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        document.getElementById('msg-input').value = "";
+    }
+
+    function loadMessages() {
+        db.collection("global_chat").orderBy("timestamp")
+            .onSnapshot(snapshot => {
+                const box = document.getElementById('messages');
+                box.innerHTML = "";
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const div = document.createElement('div');
+                    div.className = "msg";
+                    
+                    // Check if it's a GIF link
+                    let content = data.text;
+                    if(content.includes('.gif') || content.includes('tenor.com')) {
+                        content = `<img src="${content}" class="gif">`;
+                    }
+
+                    div.innerHTML = `<b>${data.user}</b> ${content}`;
+                    box.appendChild(div);
+                });
+                box.scrollTop = box.scrollHeight;
+            });
+    }
+
+    function addFriend() {
+        const email = document.getElementById('friend-email').value;
+        db.collection("users").doc(currentUser.uid).collection("friends").add({ email: email });
+        alert("Friend Added!");
+    }
+
+    function logout() { auth.signOut(); }
+</script>
+</body>
+</html>
