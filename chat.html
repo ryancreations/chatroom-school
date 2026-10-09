@@ -1,99 +1,128 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>SchoolChat - Dashboard</title>
+    <title>SchoolChat - Messages</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
-        body { margin: 0; display: flex; height: 100vh; font-family: sans-serif; background: #313338; color: white; }
-        #sidebar { wwidth: 240px; background: #2B2D31; display: flex; flex-direction: column; padding: 20px; }
-        #chat-area { flex: 1; display: flex; flex-direction: column; }
-        #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; }
-        .msg { margin-bottom: 15px; }
-        .msg b { color: #00AFF4; display: block; }
-        .input-box { padding: 20px; background: #313338; }
-        input[type="text"] { width: 90%; padding: 15px; border-radius: 8px; border: none; background: #383A40; color: white; }
-        .friend-item { padding: 10px; cursor: pointer; border-radius: 5px; }
-        .friend-item:hover { background: #3F4147; }
-        img.gif { max-width: 200px; border-radius: 8px; display: block; margin-top: 5px; }
+        body { margin: 0; display: flex; height: 100vh; font-family: 'Segoe UI', sans-serif; background: #313338; color: white; overflow: hidden; }
+        
+        /* Sidebar Styles */
+        #sidebar { width: 260px; background: #2B2D31; display: flex; flex-direction: column; border-right: 1px solid #232428; }
+        .sidebar-header { padding: 20px; font-weight: bold; border-bottom: 1px solid #232428; }
+        .friend-list { flex: 1; overflow-y: auto; padding: 10px; }
+        .friend-item { padding: 10px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+        .friend-item:hover { background: #35373C; }
+        .user-footer { background: #232428; padding: 10px; display: flex; align-items: center; justify-content: space-between; }
+
+        /* Chat Window */
+        #chat-main { flex: 1; display: flex; flex-direction: column; background: #313338; }
+        #messages-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .message { display: flex; flex-direction: column; }
+        .message .user-name { font-weight: bold; color: #f2f3f5; font-size: 14px; margin-bottom: 4px; }
+        .message .text { color: #dbdee1; font-size: 15px; word-wrap: break-word; }
+        
+        .input-area { padding: 20px; background: #313338; }
+        .input-wrapper { background: #383A40; border-radius: 8px; padding: 10px 15px; display: flex; align-items: center; }
+        #msg-input { background: transparent; border: none; color: white; flex: 1; outline: none; font-size: 15px; }
+        
+        img.gif { max-width: 300px; border-radius: 8px; margin-top: 8px; border: 1px solid #444; }
+        .avatar { width: 32px; height: 32px; background: #5865F2; border-radius: 50%; }
     </style>
 </head>
 <body>
 
 <div id="sidebar">
-    <h3>Friends</h3>
-    <input type="text" id="friend-email" placeholder="Friend's Email" style="width: 100%; margin-bottom: 10px;">
-    <button onclick="addFriend()">Add Friend</button>
-    <div id="friends-list"></div>
-    <button onclick="logout()" style="margin-top: auto;">Logout</button>
+    <div class="sidebar-header">SchoolChat</div>
+    <div class="friend-list">
+        <div style="font-size: 12px; color: #949ba4; margin-bottom: 10px; padding-left: 5px;">DIRECT MESSAGES</div>
+        <div id="friends-inject"></div>
+        <button onclick="addFriend()" style="background:#248046; color:white; border:none; width:100%; padding:8px; border-radius:4px; margin-top:10px; cursor:pointer;">+ Add Friend</button>
+    </div>
+    <div class="user-footer">
+        <span id="user-display" style="font-size: 12px; overflow: hidden;">Loading...</span>
+        <button onclick="logout()" style="background:none; border:none; color:#dbdee1; cursor:pointer;">Logout</button>
+    </div>
 </div>
 
-<div id="chat-area">
-    <div id="messages"></div>
-    <div class="input-box">
-        <input type="text" id="msg-input" placeholder="Type a message (or a GIF link)..." onkeypress="if(event.key==='Enter') sendMsg()">
+<div id="chat-main">
+    <div id="messages-container"></div>
+    <div class="input-area">
+        <div class="input-wrapper">
+            <input type="text" id="msg-input" placeholder="Message #general (Paste GIF links here!)" onkeypress="if(event.key==='Enter') sendMessage()">
+        </div>
     </div>
 </div>
 
 <script>
-    // USE THE SAME FIREBASE CONFIG HERE
-    const firebaseConfig = { /* PASTE SAME CONFIG AS ABOVE */ };
+    // PASTE THE SAME FIREBASE CONFIG HERE
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT.firebaseapp.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT.appspot.com",
+        messagingSenderId: "YOUR_ID",
+        appId: "YOUR_APP_ID"
+    };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    let currentUser = null;
+    let userEmail = "";
 
     auth.onAuthStateChanged(user => {
         if (user) {
-            currentUser = user;
-            loadMessages();
-            loadFriends();
+            userEmail = user.email;
+            document.getElementById('user-display').innerText = user.email;
+            listenForMessages();
         } else {
             window.location.href = "index.html";
         }
     });
 
-    function sendMsg() {
-        const text = document.getElementById('msg-input').value;
-        if (!text) return;
+    function sendMessage() {
+        const input = document.getElementById('msg-input');
+        const text = input.value.trim();
+        if(!text) return;
 
-        db.collection("global_chat").add({
-            user: currentUser.email,
-            text: text,
+        db.collection("messages").add({
+            user: userEmail,
+            content: text,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
-        document.getElementById('msg-input').value = "";
+        input.value = "";
     }
 
-    function loadMessages() {
-        db.collection("global_chat").orderBy("timestamp")
-            .onSnapshot(snapshot => {
-                const box = document.getElementById('messages');
-                box.innerHTML = "";
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const div = document.createElement('div');
-                    div.className = "msg";
-                    
-                    // Check if it's a GIF link
-                    let content = data.text;
-                    if(content.includes('.gif') || content.includes('tenor.com')) {
-                        content = `<img src="${content}" class="gif">`;
-                    }
+    function listenForMessages() {
+        db.collection("messages").orderBy("timestamp")
+        .onSnapshot(snapshot => {
+            const container = document.getElementById('messages-container');
+            container.innerHTML = "";
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const msgDiv = document.createElement('div');
+                msgDiv.className = "message";
+                
+                let content = data.content;
+                // GIF Link Detection (Tenor, Giphy, or direct .gif)
+                if(content.includes('.gif') || content.includes('tenor.com/view') || content.includes('media.giphy.com')) {
+                    content = `<img src="${content}" class="gif">`;
+                }
 
-                    div.innerHTML = `<b>${data.user}</b> ${content}`;
-                    box.appendChild(div);
-                });
-                box.scrollTop = box.scrollHeight;
+                msgDiv.innerHTML = `
+                    <div class="user-name">${data.user}</div>
+                    <div class="text">${content}</div>
+                `;
+                container.appendChild(msgDiv);
             });
+            container.scrollTop = container.scrollHeight;
+        });
     }
 
     function addFriend() {
-        const email = document.getElementById('friend-email').value;
-        db.collection("users").doc(currentUser.uid).collection("friends").add({ email: email });
-        alert("Friend Added!");
+        const email = prompt("Enter friend's email address:");
+        if(email) alert("Friend request sent to " + email);
     }
 
     function logout() { auth.signOut(); }
