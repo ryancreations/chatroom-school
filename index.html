@@ -2,59 +2,62 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SchoolChat - Login</title>
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #313338; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
-        .container { background-color: #383A40; padding: 40px; border-radius: 12px; width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; position: relative; }
+        
+        /* Main Container */
+        .container { 
+            background-color: #383A40; padding: 30px; border-radius: 12px; width: 380px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; position: relative; z-index: 10;
+        }
+
         h2 { margin-bottom: 20px; color: #f2f3f5; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: none; background-color: #1E1F22; color: white; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: none; background-color: #1E1F22; color: white; box-sizing: border-box; }
+        
+        button { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; }
         .btn-google { background-color: white; color: #444; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-primary { background-color: #5865F2; color: white; }
         .btn-primary:hover { background-color: #4752C4; }
         .btn-secondary { background-color: transparent; color: #00AFF4; }
-        .btn-secondary:hover { text-decoration: underline; }
+        
         .hidden { display: none; }
         .divider { margin: 20px 0; color: #888; font-size: 12px; text-transform: uppercase; }
-        .avatar-preview { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; background: #5865F2; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 30px; font-weight: bold; }
-        #stealth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1a1a; z-index: 9999; display: flex; justify-content: center; align-items: center; color: #555; font-size: 24px; cursor: pointer; }
+        #error-msg { color: #ed4245; font-size: 12px; margin-bottom: 10px; min-height: 15px;}
+
+        /* Lobby Customization */
+        .lobby-setup { text-align: left; margin-bottom: 20px; }
+        .preview-img { width: 100%; height: 100px; object-fit: cover; border-radius: 6px; margin-top: 5px; background: #2B2D31; }
     </style>
 </head>
 <body>
 
-<!-- Stealth Overlay (Click to enter) -->
-<div id="stealth-overlay" onclick="enterApp()">
-    📚 Study Session...
-</div>
-
-<div class="container">
+<div class="container" id="login-box">
     <h2 id="form-title">Login to SchoolChat</h2>
-    
-    <!-- Google Button -->
+    <div id="error-msg"></div>
+
     <button class="btn-google" onclick="loginWithGoogle()">
         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> 
         Continue with Google
     </button>
 
-    <div class="divider">or use email & username</div>
+    <div class="divider">or use email</div>
 
     <input type="text" id="username" placeholder="Choose a Username" autocomplete="off">
     <input type="email" id="email" placeholder="Email Address" autocomplete="off">
     <input type="password" id="password" placeholder="Password" autocomplete="off">
-    <input type="url" id="photoURL" placeholder="Profile Image URL (Optional)" autocomplete="off">
 
     <button id="action-btn" class="btn-primary" onclick="handleAuth()">Login</button>
     <button class="btn-secondary" onclick="toggleMode()">Create an account</button>
 </div>
 
 <script>
-   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyBPC0x93NkRWCxMUA0c8xkS-jQa2IdbysI",
   authDomain: "schoolchat-7f5a5.firebaseapp.com",
@@ -65,7 +68,6 @@ const firebaseConfig = {
   appId: "1:752691397853:web:b4acd05e0259979edfc734",
   measurementId: "G-QS6SVMF7FE"
 };
-
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
@@ -77,23 +79,18 @@ const firebaseConfig = {
         document.getElementById('action-btn').textContent = isLoginMode ? "Login" : "Register";
         document.querySelector('.btn-secondary').textContent = isLoginMode ? "Create an account" : "Have an account? Login";
         document.getElementById('form-title').textContent = isLoginMode ? "Login to SchoolChat" : "Create Account";
+        document.getElementById('error-msg').innerText = "";
     }
 
-    function enterApp() {
-        document.getElementById('stealth-overlay').style.display = 'none';
-        requestNotificationPermission();
-    }
-
-    function requestNotificationPermission() {
-        if ("Notification" in window) {
-            Notification.requestPermission();
-        }
+    function showError(msg) {
+        document.getElementById('error-msg').innerText = msg;
     }
 
     function loginWithGoogle() {
         const provider = new firebase.auth.GoogleAuthProvider();
         auth.signInWithPopup(provider).then((result) => {
             const user = result.user;
+            // Ensure user data exists
             db.collection("users").doc(user.uid).set({
                 username: user.displayName || "User_" + Math.floor(Math.random()*1000),
                 email: user.email,
@@ -102,43 +99,44 @@ const firebaseConfig = {
                 status: "online"
             }, { merge: true }).then(() => {
                 updateStatus(true);
-                window.location.href = "chat.html";
+                enterApp();
             });
-        }).catch((error) => alert(error.message));
+        }).catch((error) => showError(error.message));
     }
 
     function handleAuth() {
         const email = document.getElementById('email').value.trim();
         const pass = document.getElementById('password').value.trim();
         const username = document.getElementById('username').value.trim();
-        const photo = document.getElementById('photoURL').value.trim();
+        document.getElementById('error-msg').innerText = "";
 
-        if (!email || !pass) return alert("Please enter email and password.");
+        if (!email || !pass) return showError("Please enter email and password.");
 
         if (isLoginMode) {
             auth.signInWithEmailAndPassword(email, pass).then((cred) => {
                 updateStatus(true);
-                window.location.href = "chat.html";
-            }).catch((e) => alert(e.message));
+                enterApp();
+            }).catch((e) => showError(e.message));
         } else {
-            if (!username) return alert("Please pick a username.");
+            if (!username) return showError("Please pick a username.");
+            
             db.collection("users").where("username", "==", username.toLowerCase()).get().then((snap) => {
-                if (!snap.empty) return alert("Username already taken!");
+                if (!snap.empty) return showError("Username already taken!");
                 
                 auth.createUserWithEmailAndPassword(email, pass).then((cred) => {
-                    cred.user.updateProfile({ displayName: username, photoURL: photo }).then(() => {
+                    cred.user.updateProfile({ displayName: username }).then(() => {
                         db.collection("users").doc(cred.user.uid).set({
                             username: username.toLowerCase(),
                             email: email,
-                            photoURL: photo,
+                            photoURL: "",
                             friends: [],
                             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                             status: "online"
                         });
                         updateStatus(true);
-                        window.location.href = "chat.html";
+                        enterApp();
                     });
-                }).catch((e) => alert(e.message));
+                }).catch((e) => showError(e.message));
             });
         }
     }
@@ -150,6 +148,10 @@ const firebaseConfig = {
                 lastSeen: firebase.firestore.FieldValue.serverTimestamp()
             });
         }
+    }
+
+    function enterApp() {
+        window.location.href = "chat.html";
     }
 
     window.addEventListener('beforeunload', () => updateStatus(false));
