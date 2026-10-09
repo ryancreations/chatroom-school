@@ -39,7 +39,8 @@
         #messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
         
         /* Message Styling */
-        .message { max-width: 70%; padding: 10px 15px; border-radius: 18px; word-wrap: break-word; background: #40444B; position: relative; }
+        .message { max-width: 70%; padding: 10px 15px; border-radius: 18px; word-wrap: break-word; background: #40444B; position: relative; transition: 0.2s; }
+        .message:hover { background: #4a4d54; } /* Highlight on hover for mod tools */
         .msg-self { align-self: flex-end; border-bottom-right-radius: 4px; }
         .msg-other { align-self: flex-start; border-bottom-left-radius: 4px; }
         
@@ -142,6 +143,38 @@
         }
         .lobby-input { width: 80%; margin-bottom: 10px; padding: 10px; border-radius: 5px; border: none; background: #202225; color: white; }
         .join-btn { background: #5865F2; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
+
+        /* MODAL STYLES */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 1000; display: none;
+            justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: #2B2D31; padding: 20px; border-radius: 8px; width: 350px;
+            position: relative;
+        }
+        .close-modal { position: absolute; top: 10px; right: 10px; cursor: pointer; font-size: 20px; }
+        .room-code-display { 
+            background: #202225; padding: 10px; text-align: center; 
+            font-family: monospace; font-size: 18px; letter-spacing: 2px; 
+            margin: 10px 0; border: 1px dashed #5865F2;
+        }
+        .rules-box { 
+            background: #202225; padding: 10px; border-radius: 4px; 
+            max-height: 150px; overflow-y: auto; margin-bottom: 10px; font-size: 12px;
+        }
+
+        /* SECRET DEV MODE */
+        .dev-menu {
+            position: absolute; background: #111; border: 1px solid #0f0; color: #0f0;
+            padding: 5px; font-family: monospace; font-size: 10px; z-index: 9999;
+            display: none; cursor: pointer;
+        }
+        .dev-menu div { padding: 2px 5px; }
+        .dev-menu div:hover { background: #0f0; color: #000; }
+        .edit-input { background: #000; color: #0f0; border: 1px solid #0f0; font-family: monospace; }
+
     </style>
 </head>
 <body>
@@ -216,9 +249,10 @@
     <div class="chat-header">
         <span id="current-chat-name"># General</span>
         <div style="display: flex; gap: 10px;">
-            <button class="call-btn" onclick="startCall()">📞 Call</button>
+            <button class="call-btn" onclick="openCallModal()">📞 Call</button>
             <button class="call-btn" style="background: #ED4245;" onclick="triggerAlert('blinker')">⚡ Blinker</button>
             <button class="call-btn" style="background: #3BA55C;" onclick="triggerAlert('vape')">💨 Vape Break</button>
+            <button class="icon-btn" onclick="openRulesModal()">⚙️</button>
         </div>
     </div>
     <div id="messages"></div>
@@ -275,6 +309,44 @@
 <!-- EMOJI PICKER -->
 <div id="emoji-picker"></div>
 
+<!-- RULES MODAL -->
+<div id="rules-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal('rules-modal')">&times;</span>
+        <h3>Server Rules</h3>
+        <textarea id="rules-textarea" rows="5" style="width:100%; background:#202225; color:white; border:none; resize:none;"></textarea>
+        <button class="save-btn" onclick="saveRules()">Save Rules</button>
+    </div>
+</div>
+
+<!-- CALL MODAL -->
+<div id="call-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal('call-modal')">&times;</span>
+        <h3>Video Call</h3>
+        <p>Your Peer ID:</p>
+        <div id="my-peer-id" class="room-code-display">Generating...</div>
+        
+        <hr style="border-color:#40444B;">
+        
+        <p>Create or Join Room:</p>
+        <input type="text" id="room-input" placeholder="Paste Room ID here..." style="width:90%; padding:5px; margin-bottom:5px;">
+        <button class="join-btn" onclick="createOrJoinRoom()">Generate / Join Room</button>
+        
+        <div id="active-room-info" style="margin-top:10px; display:none;">
+            <p>Active Room ID:</p>
+            <div id="active-room-id" class="room-code-display">...</div>
+        </div>
+    </div>
+</div>
+
+<!-- SECRET DEV MENU -->
+<div id="dev-menu" class="dev-menu">
+    <div onclick="deleteMessage()">🗑 Delete</div>
+    <div onclick="editMessage()">✏️ Edit</div>
+    <div onclick="showRawData()">📄 View Data</div>
+</div>
+
 <script>
    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
@@ -296,6 +368,7 @@ const firebaseConfig = {
     let peer = null;
     let myStream = null;
     let currentCallPeer = null;
+    let activeRoomId = null;
 
     // AUTH CHECK
     auth.onAuthStateChanged(user => {
@@ -306,6 +379,7 @@ const firebaseConfig = {
             listenToMessages();
             initEmojiPicker();
             checkForAlerts();
+            setupDevMode();
         } else {
             window.location.href = "index.html";
         }
@@ -406,7 +480,8 @@ const firebaseConfig = {
                     
                     const div = document.createElement('div');
                     div.className = `message ${isMe ? 'msg-self' : 'msg-other'}`;
-                    
+                    div.dataset.id = doc.id; // Store ID for Dev Mode
+
                     // Check if it's a link
                     if(msg.text && msg.text.startsWith('http')) {
                         const domain = new URL(msg.text).hostname.replace('www.', '');
@@ -435,9 +510,6 @@ const firebaseConfig = {
     }
 
     function getSenderStyle(uid) {
-        // In a real app, you'd cache this. Here we just return empty string 
-        // because fetching every user for every message is slow without caching.
-        // However, we can try to fetch if not cached.
         return ""; 
     }
 
@@ -526,11 +598,9 @@ const firebaseConfig = {
                 const alert = snap.docs[0].data();
                 // Only show if it's recent (last 5 seconds)
                 if(Date.now() - alert.timestamp < 5000) {
-                    // Show if it's from someone else OR if it's from me (self-alerts enabled)
                     const el = document.getElementById(`${alert.type}-alert`);
                     if(el) {
                         el.style.display = "flex";
-                        // Auto-hide after 3 seconds
                         setTimeout(() => { el.style.display = "none"; }, 3000);
                     }
                 }
@@ -558,16 +628,30 @@ const firebaseConfig = {
     }
 
     // VIDEO CALL
-    function startCall() {
-        const peerId = prompt("Enter Friend's Peer ID to call:");
-        if(peerId) {
-            connectCall(peerId);
+    function openCallModal() {
+        document.getElementById('call-modal').style.display = 'flex';
+        if(!peer) initPeer();
+        document.getElementById('my-peer-id').innerText = peer.id;
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+
+    function createOrJoinRoom() {
+        const roomId = document.getElementById('room-input').value.trim();
+        if(roomId) {
+            activeRoomId = roomId;
+            connectCall(roomId);
+        } else {
+            // Generate random room ID
+            activeRoomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+            document.getElementById('room-input').value = activeRoomId;
+            connectCall(activeRoomId);
         }
     }
 
     function connectCall(targetId) {
-        if(!peer) initPeer();
-        
         const call = peer.call(targetId, myStream);
         call.on('stream', remoteStream => {
             document.getElementById('remote-video').srcObject = remoteStream;
@@ -596,6 +680,77 @@ const firebaseConfig = {
     function toggleMute() {
         if(myStream) {
             myStream.getAudioTracks()[0].enabled = !myStream.getAudioTracks()[0].enabled;
+        }
+    }
+
+    // RULES & SETTINGS
+    function openRulesModal() {
+        document.getElementById('rules-modal').style.display = 'flex';
+        // Load rules
+        db.collection("chats").doc(currentChatId).get().then(doc => {
+            if(doc.exists && doc.data().rules) {
+                document.getElementById('rules-textarea').value = doc.data().rules;
+            } else {
+                document.getElementById('rules-textarea').value = "1. Be respectful.\n2. No spamming.\n3. Have fun!";
+            }
+        });
+    }
+
+    function saveRules() {
+        const rules = document.getElementById('rules-textarea').value;
+        db.collection("chats").doc(currentChatId).set({ rules: rules }, { merge: true });
+        closeModal('rules-modal');
+    }
+
+    // SECRET DEV MODE (Shift + Enter)
+    function setupDevMode() {
+        document.addEventListener('keydown', (e) => {
+            if(e.shiftKey && e.key === 'Enter') {
+                e.preventDefault();
+                const menu = document.getElementById('dev-menu');
+                menu.style.display = 'block';
+                menu.style.left = (event.clientX - 10) + 'px';
+                menu.style.top = (event.clientY - 10) + 'px';
+                
+                // Find closest message
+                const msgDiv = event.target.closest('.message');
+                if(msgDiv) {
+                    window.currentMsgId = msgDiv.dataset.id;
+                }
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if(!e.target.closest('#dev-menu')) {
+                document.getElementById('dev-menu').style.display = 'none';
+            }
+        });
+    }
+
+    function deleteMessage() {
+        if(window.currentMsgId) {
+            db.collection("chats").doc(currentChatId).collection("messages").doc(window.currentMsgId).delete();
+            document.getElementById('dev-menu').style.display = 'none';
+        }
+    }
+
+    function editMessage() {
+        if(window.currentMsgId) {
+            const newText = prompt("Edit message:", "");
+            if(newText !== null) {
+                db.collection("chats").doc(currentChatId).collection("messages").doc(window.currentMsgId).update({
+                    text: newText
+                });
+                document.getElementById('dev-menu').style.display = 'none';
+            }
+        }
+    }
+
+    function showRawData() {
+        if(window.currentMsgId) {
+            db.collection("chats").doc(currentChatId).collection("messages").doc(window.currentMsgId).get().then(doc => {
+                alert(JSON.stringify(doc.data(), null, 2));
+            });
         }
     }
 
