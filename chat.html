@@ -1,131 +1,396 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>SchoolChat - Messages</title>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <style>
-        body { margin: 0; display: flex; height: 100vh; font-family: 'Segoe UI', sans-serif; background: #313338; color: white; overflow: hidden; }
-        
-        /* Sidebar Styles */
-        #sidebar { width: 260px; background: #2B2D31; display: flex; flex-direction: column; border-right: 1px solid #232428; }
-        .sidebar-header { padding: 20px; font-weight: bold; border-bottom: 1px solid #232428; }
-        .friend-list { flex: 1; overflow-y: auto; padding: 10px; }
-        .friend-item { padding: 10px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
-        .friend-item:hover { background: #35373C; }
-        .user-footer { background: #232428; padding: 10px; display: flex; align-items: center; justify-content: space-between; }
-
-        /* Chat Window */
-        #chat-main { flex: 1; display: flex; flex-direction: column; background: #313338; }
-        #messages-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        .message { display: flex; flex-direction: column; }
-        .message .user-name { font-weight: bold; color: #f2f3f5; font-size: 14px; margin-bottom: 4px; }
-        .message .text { color: #dbdee1; font-size: 15px; word-wrap: break-word; }
-        
-        .input-area { padding: 20px; background: #313338; }
-        .input-wrapper { background: #383A40; border-radius: 8px; padding: 10px 15px; display: flex; align-items: center; }
-        #msg-input { background: transparent; border: none; color: white; flex: 1; outline: none; font-size: 15px; }
-        
-        img.gif { max-width: 300px; border-radius: 8px; margin-top: 8px; border: 1px solid #444; }
-        .avatar { width: 32px; height: 32px; background: #5865F2; border-radius: 50%; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lifeline Chat</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding-top: 56px; /* header height */
+      background: #36393f;
+      color: #dcddde;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 56px;
+      background: #2f3136;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      box-shadow: 0 1px 0 #1c1e23;
+      color: white;
+      font-weight: 600;
+      font-size: 18px;
+      z-index: 100;
+      justify-content: space-between;
+    }
+    #logout-btn {
+      background: #7289da;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    #chat-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #36393f;
+    }
+    .message {
+      max-width: 70%;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 16px;
+      line-height: 1.4;
+      word-wrap: break-word;
+      user-select: none;
+      position: relative;
+    }
+    .message.sent {
+      background: #5865f2;
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+    .message.received {
+      background: #2f3136;
+      color: #dcddde;
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+    .sender-name {
+      font-weight: 600;
+      font-size: 13px;
+      opacity: 0.7;
+      margin-bottom: 4px;
+    }
+    .timestamp {
+      font-size: 11px;
+      opacity: 0.6;
+      position: absolute;
+      bottom: 4px;
+      right: 8px;
+      user-select: none;
+    }
+    #input-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #40444b;
+      padding: 10px 16px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      z-index: 100;
+    }
+    #message-input {
+      flex: 1;
+      border: none;
+      border-radius: 20px;
+      padding: 12px 16px;
+      font-size: 16px;
+      background: #2f3136;
+      color: white;
+      outline: none;
+    }
+    #send-btn {
+      background: #5865f2;
+      border: none;
+      border-radius: 50%;
+      height: 40px;
+      width: 40px;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .gif-image {
+      max-width: 300px;
+      max-height: 200px;
+      border-radius: 10px;
+      margin-top: 6px;
+      display: block;
+    }
+    #image-input {
+      display: none;
+    }
+    #image-btn {
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      font-size: 20px;
+      color: #5865f2;
+    }
+    #reply-preview {
+      background: #202225;
+      border-left: 4px solid #5865f2;
+      padding: 6px 12px;
+      font-style: italic;
+      margin-bottom: 6px;
+      color: #b9bbbe;
+      display: none;
+    }
+    #cancel-reply {
+      cursor: pointer;
+      font-weight: bold;
+      color: #ff5555;
+      margin-left: 8px;
+      user-select: none;
+    }
+  </style>
 </head>
 <body>
+  <header>
+    Lifeline Chat
+    <button id="logout-btn">Logout</button>
+  </header>
+  <main id="chat-container"></main>
+  <div id="input-bar">
+    <button id="image-btn" title="Send Image">📷</button>
+    <input type="file" id="image-input" accept="image/*,.gif" />
+    <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off" />
+    <button id="send-btn" title="Send">&#8679;</button>
+  </div>
+  <div id="reply-preview">Replying to: <span id="reply-text"></span> <span id="cancel-reply">✖</span></div>
 
-<div id="sidebar">
-    <div class="sidebar-header">SchoolChat</div>
-    <div class="friend-list">
-        <div style="font-size: 12px; color: #949ba4; margin-bottom: 10px; padding-left: 5px;">DIRECT MESSAGES</div>
-        <div id="friends-inject"></div>
-        <button onclick="addFriend()" style="background:#248046; color:white; border:none; width:100%; padding:8px; border-radius:4px; margin-top:10px; cursor:pointer;">+ Add Friend</button>
-    </div>
-    <div class="user-footer">
-        <span id="user-display" style="font-size: 12px; overflow: hidden;">Loading...</span>
-        <button onclick="logout()" style="background:none; border:none; color:#dbdee1; cursor:pointer;">Logout</button>
-    </div>
-</div>
+  <script type="module">
+    import {
+      initializeApp
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      push,
+      onChildAdded,
+      serverTimestamp,
+      remove
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+    import {
+      getStorage,
+      ref as storageRef,
+      uploadBytes,
+      getDownloadURL
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
-<div id="chat-main">
-    <div id="messages-container"></div>
-    <div class="input-area">
-        <div class="input-wrapper">
-            <input type="text" id="msg-input" placeholder="Message #general (Paste GIF links here!)" onkeypress="if(event.key==='Enter') sendMessage()">
-        </div>
-    </div>
-</div>
+   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBPC0x93NkRWCxMUA0c8xkS-jQa2IdbysI",
+  authDomain: "schoolchat-7f5a5.firebaseapp.com",
+  projectId: "schoolchat-7f5a5",
+  storageBucket: "schoolchat-7f5a5.firebasestorage.app",
+  messagingSenderId: "752691397853",
+  appId: "1:752691397853:web:b4acd05e0259979edfc734",
+  measurementId: "G-QS6SVMF7FE"
+};
 
-<script>
-    // PASTE THE SAME FIREBASE CONFIG HERE
-    const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT.firebaseapp.com",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_PROJECT.appspot.com",
-        messagingSenderId: "YOUR_ID",
-        appId: "YOUR_APP_ID"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+    const storage = getStorage(app);
 
-    let userEmail = "";
+    const chatContainer = document.getElementById('chat-container');
+    const messageInput = document.getElementById('message-input');
+    const sendBtn = document.getElementById('send-btn');
+    const imageBtn = document.getElementById('image-btn');
+    const imageInput = document.getElementById('image-input');
+    const logoutBtn = document.getElementById('logout-btn');
+    const replyPreview = document.getElementById('reply-preview');
+    const replyText = document.getElementById('reply-text');
+    const cancelReply = document.getElementById('cancel-reply');
 
-    auth.onAuthStateChanged(user => {
-        if (user) {
-            userEmail = user.email;
-            document.getElementById('user-display').innerText = user.email;
-            listenForMessages();
-        } else {
-            window.location.href = "index.html";
-        }
+    let currentUser = null;
+    let replyTo = null;
+
+    function formatTimestamp(ts) {
+      if (!ts) return '';
+      const date = new Date(ts);
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function createMessageElement(msgKey, msg) {
+      const div = document.createElement('div');
+      div.classList.add('message');
+      const isMe = currentUser && msg.uid === currentUser.uid;
+      div.classList.add(isMe ? 'sent' : 'received');
+      div.dataset.key = msgKey;
+
+      const senderName = document.createElement('div');
+      senderName.classList.add('sender-name');
+      senderName.textContent = msg.name || 'Unknown';
+
+      const content = document.createElement('div');
+      if(msg.type === 'image' && msg.imageUrl) {
+        const img = document.createElement('img');
+        img.src = msg.imageUrl;
+        img.alt = 'Image';
+        img.classList.add('gif-image');
+        content.appendChild(img);
+      } else {
+        // Simple linkify for URLs
+        let text = msg.text || '';
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        text = text.replace(urlRegex, url => `<a href="$&" target="_blank" rel="noopener noreferrer">$&</a>`);
+        content.innerHTML = text;
+      }
+
+      const timestamp = document.createElement('div');
+      timestamp.classList.add('timestamp');
+      timestamp.textContent = formatTimestamp(msg.timestamp);
+
+      div.appendChild(senderName);
+
+      if (msg.replyTo) {
+        const replyDiv = document.createElement('div');
+        replyDiv.style.cssText = 'font-size: 12px; color: #b9bbbe; font-style: italic; margin-bottom: 4px; border-left: 3px solid #5865f2; padding-left: 8px;';
+        replyDiv.textContent = `${msg.replyTo.name}: ${msg.replyTo.text || 'Image'}`;
+        div.appendChild(replyDiv);
+      }
+
+      div.appendChild(content);
+      div.appendChild(timestamp);
+
+      div.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        setReply(msg);
+      });
+
+      return div;
+    }
+
+    function setReply(msg) {
+      replyTo = msg;
+      replyPreview.style.display = 'block';
+      replyText.textContent = `${msg.name || 'Unknown'}: ${msg.text || 'Image'}`;
+      messageInput.focus();
+    }
+
+    cancelReply.addEventListener('click', () => {
+      replyTo = null;
+      replyPreview.style.display = 'none';
     });
 
-    function sendMessage() {
-        const input = document.getElementById('msg-input');
-        const text = input.value.trim();
-        if(!text) return;
+    function clearMessages() {
+      chatContainer.innerHTML = '';
+    }
 
-        db.collection("messages").add({
-            user: userEmail,
-            content: text,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        input.value = "";
+    function scrollToBottom() {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+
+    messageInput.addEventListener('keydown', e => {
+      if(e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    imageBtn.addEventListener('click', () => imageInput.click());
+
+    imageInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if(!file || !currentUser) return;
+
+      sendBtn.disabled = true;
+      sendBtn.textContent = '…';
+
+      try {
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const fileRef = storageRef(storage, `chat-images/${Date.now()}_${safeName}`);
+        await uploadBytes(fileRef, file);
+        const url = await getDownloadURL(fileRef);
+
+        const messageData = {
+          uid: currentUser.uid,
+          name: currentUser.displayName || currentUser.email.split('@')[0],
+          type: 'image',
+          imageUrl: url,
+          timestamp: serverTimestamp()
+        };
+
+        if(replyTo) {
+          messageData.replyTo = { name: replyTo.name, text: replyTo.text };
+        }
+
+        await push(ref(db, 'lifeline-chat'), messageData);
+        replyTo = null;
+        replyPreview.style.display = 'none';
+
+      } catch (err) {
+        alert('Could not upload image: '+err.message);
+      }
+
+      sendBtn.disabled = false;
+      sendBtn.textContent = '↑';
+      e.target.value = '';
+    });
+
+    async function sendMessage() {
+      const text = messageInput.value.trim();
+      if(!text || !currentUser) return;
+
+      const messageData = {
+        uid: currentUser.uid,
+        name: currentUser.displayName || currentUser.email.split('@')[0],
+        type: 'text',
+        text: text,
+        timestamp: serverTimestamp()
+      };
+
+      if(replyTo) {
+        messageData.replyTo = { name: replyTo.name, text: replyTo.text };
+      }
+
+      await push(ref(db, 'lifeline-chat'), messageData);
+      messageInput.value = '';
+      replyTo = null;
+      replyPreview.style.display = 'none';
     }
 
     function listenForMessages() {
-        db.collection("messages").orderBy("timestamp")
-        .onSnapshot(snapshot => {
-            const container = document.getElementById('messages-container');
-            container.innerHTML = "";
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                const msgDiv = document.createElement('div');
-                msgDiv.className = "message";
-                
-                let content = data.content;
-                // GIF Link Detection (Tenor, Giphy, or direct .gif)
-                if(content.includes('.gif') || content.includes('tenor.com/view') || content.includes('media.giphy.com')) {
-                    content = `<img src="${content}" class="gif">`;
-                }
-
-                msgDiv.innerHTML = `
-                    <div class="user-name">${data.user}</div>
-                    <div class="text">${content}</div>
-                `;
-                container.appendChild(msgDiv);
-            });
-            container.scrollTop = container.scrollHeight;
-        });
+      const messagesRef = ref(db, 'lifeline-chat');
+      onChildAdded(messagesRef, snapshot => {
+        const msg = snapshot.val();
+        if(!msg) return;
+        const msgElement = createMessageElement(snapshot.key, msg);
+        chatContainer.appendChild(msgElement);
+        scrollToBottom();
+      });
     }
 
-    function addFriend() {
-        const email = prompt("Enter friend's email address:");
-        if(email) alert("Friend request sent to " + email);
-    }
+    logoutBtn.addEventListener('click', () => {
+      signOut(auth);
+    });
 
-    function logout() { auth.signOut(); }
-</script>
+    onAuthStateChanged(auth, user => {
+      if(user) {
+        currentUser = user;
+        chatContainer.innerHTML = '';
+        listenForMessages();
+      } else {
+        location.href = 'index.html';
+      }
+    });
+  </script>
 </body>
 </html>
