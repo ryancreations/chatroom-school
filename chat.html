@@ -191,6 +191,7 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 15px;
+            z-index: 10;
         }
 
         .chat-title {
@@ -228,6 +229,7 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
+            z-index: 5;
         }
 
         .message {
@@ -285,6 +287,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            z-index: 10;
         }
 
         #msg-input {
@@ -530,9 +533,48 @@
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #2B2D31; }
         ::-webkit-scrollbar-thumb { background: #1A1B1E; border-radius: 4px; }
+
+        /* --- SMOKE EFFECT --- */
+        #smoke-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.5s ease-out;
+            background: radial-gradient(circle at center, rgba(200,200,200,0.4) 0%, rgba(150,150,150,0.2) 40%, transparent 80%);
+            mix-blend-mode: screen;
+            filter: blur(20px);
+            animation: smokeDiffuse 4s ease-out forwards;
+        }
+
+        @keyframes smokeDiffuse {
+            0% {
+                opacity: 0;
+                transform: scale(0.5);
+                background: radial-gradient(circle at center, rgba(255,255,255,0.8) 0%, transparent 60%);
+            }
+            20% {
+                opacity: 0.8;
+                transform: scale(1.2);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(1.5);
+                background: radial-gradient(circle at center, rgba(200,200,200,0.5) 0%, rgba(100,100,100,0.3) 50%, transparent 80%);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(2);
+                background: radial-gradient(circle at center, rgba(150,150,150,0.2) 0%, transparent 90%);
+            }
+        }
     </style>
 </head>
 <body>
+
+    <!-- Smoke Overlay Element -->
+    <div id="smoke-overlay"></div>
 
     <!-- Sidebar -->
     <div id="sidebar">
@@ -574,7 +616,10 @@
             <div class="header-buttons">
                 <button class="icon-btn" onclick="openCallModal()" title="Start Call">📞</button>
                 <button class="icon-btn" onclick="triggerAlert('blinker')" title="Blinker Alert">⚠️</button>
+                <!-- Renamed to Vape -->
                 <button class="icon-btn" onclick="triggerAlert('vape')" title="Vape Break">💨</button>
+                <!-- Added Cart Button -->
+                <button class="icon-btn" onclick="triggerAlert('cart')" title="Cart Break">🛒</button>
                 <button class="icon-btn" onclick="openRulesModal()" title="View Rules">📜</button>
                 <button class="icon-btn" onclick="toggleModTools()" title="Mod Tools">🛡️</button>
             </div>
@@ -909,13 +954,13 @@
                 .catch((err) => console.error("Error sending message:", err));
         }
 
-        // --- Input Event Listeners ---
+        // --- FIXED INPUT LOGIC ---
         const msgInput = document.getElementById('msg-input');
         
-        // FIX: Only send on Enter key
+        // Explicitly bind keydown to ensure only Enter triggers send
         msgInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault(); // Prevent newline in input
+                e.preventDefault(); // Prevent newline
                 sendMessage();
             }
         });
@@ -934,12 +979,24 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        // --- Alerts ---
+        // --- Alerts & Smoke ---
         function triggerAlert(type) {
+            // Trigger Smoke Effect first
+            showSmokeEffect();
+
+            // Then trigger the alert in Firestore
             db.collection("alerts").add({
                 type: type,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
+        }
+
+        function showSmokeEffect() {
+            const smoke = document.getElementById('smoke-overlay');
+            // Reset animation
+            smoke.style.animation = 'none';
+            smoke.offsetHeight; /* trigger reflow */
+            smoke.style.animation = 'smokeDiffuse 4s ease-out forwards';
         }
 
         function checkForAlerts() {
@@ -958,7 +1015,7 @@
         function showOverlay(type) {
             const overlay = document.createElement('div');
             overlay.className = `alert-overlay ${type}-alert`;
-            overlay.innerHTML = `<h1>${type === 'blinker' ? 'BLINKER ALERT!' : 'VAPE BREAK!'}</h1>`;
+            overlay.innerHTML = `<h1>${type === 'blinker' ? 'BLINKER ALERT!' : type === 'vape' ? 'VAPE BREAK!' : 'CART BREAK!'}</h1>`;
             document.body.appendChild(overlay);
             overlay.style.display = 'flex';
             
