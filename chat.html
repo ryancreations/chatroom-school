@@ -544,7 +544,6 @@
             background: radial-gradient(circle at center, rgba(200,200,200,0.4) 0%, rgba(150,150,150,0.2) 40%, transparent 80%);
             mix-blend-mode: screen;
             filter: blur(20px);
-            /* Animation removed from here, applied via JS class to reset properly */
         }
 
         .smoke-active {
@@ -633,9 +632,7 @@
         </div>
 
         <div class="input-area">
-            <button class="input-icon-btn" id="btn-file">📎</button>
-            <input type="file" id="file-input" style="display:none" onchange="handleFileUpload(this)">
-            <!-- FIXED INPUT: Added autocomplete="off" and removed any inline events -->
+            <!-- File upload removed as requested -->
             <input type="text" id="msg-input" placeholder="Message #general" autocomplete="off" maxlength="1500">
             <button class="input-icon-btn" id="emoji-trigger">😊</button>
         </div>
@@ -1061,6 +1058,11 @@
                 overlay.remove();
             }, 3000);
         }
+
+    // --- Event Listeners for Buttons ---
+    document.getElementById('btn-blinker').addEventListener('click', () => triggerAlert('blinker'));
+    document.getElementById('btn-vape').addEventListener('click', () => triggerAlert('vape'));
+    document.getElementById('btn-cart').addEventListener('click', () => triggerAlert('cart'));
 
         // --- Stealth Mode ---
         const stealthLayer = document.getElementById('stealth-layer');
