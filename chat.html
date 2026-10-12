@@ -534,17 +534,20 @@
         ::-webkit-scrollbar-track { background: #2B2D31; }
         ::-webkit-scrollbar-thumb { background: #1A1B1E; border-radius: 4px; }
 
-        /* --- SMOKE EFFECT --- */
+        /* --- SMOKE EFFECT (FIXED) --- */
         #smoke-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none;
             z-index: 999;
             opacity: 0;
-            transition: opacity 0.5s ease-out;
             background: radial-gradient(circle at center, rgba(200,200,200,0.4) 0%, rgba(150,150,150,0.2) 40%, transparent 80%);
             mix-blend-mode: screen;
             filter: blur(20px);
+            /* Animation removed from here, applied via JS class to reset properly */
+        }
+
+        .smoke-active {
             animation: smokeDiffuse 4s ease-out forwards;
         }
 
@@ -552,7 +555,7 @@
             0% {
                 opacity: 0;
                 transform: scale(0.5);
-                background: radial-gradient(circle at center, rgba(255,255,255,0.8) 0%, transparent 60%);
+                background: radial-gradient(circle at center, rgba(255,255,255,0.9) 0%, transparent 60%);
             }
             20% {
                 opacity: 0.8;
@@ -764,40 +767,10 @@
                 checkForAlerts();
                 setupDevMode();
                 loadChannels();
-                setupEventListeners(); // NEW: Centralized event listeners
             } else {
                 window.location.href = "index.html";
             }
         });
-
-        function setupEventListeners() {
-            // Fix Input Issue: Explicitly bind keydown to input
-            const msgInput = document.getElementById('msg-input');
-            msgInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault(); // Prevent newline
-                    sendMessage();
-                }
-            });
-
-            // Button Listeners
-            document.getElementById('btn-call').addEventListener('click', openCallModal);
-            document.getElementById('btn-blinker').addEventListener('click', () => triggerAlert('blinker'));
-            document.getElementById('btn-vape').addEventListener('click', () => triggerAlert('vape'));
-            document.getElementById('btn-cart').addEventListener('click', () => triggerAlert('cart'));
-            document.getElementById('btn-rules').addEventListener('click', openRulesModal);
-            document.getElementById('btn-mod').addEventListener('click', toggleModTools);
-            document.getElementById('btn-file').addEventListener('click', () => document.getElementById('file-input').click());
-            
-            // Stealth Activate
-            document.getElementById('stealth-activate-btn').addEventListener('click', activateStealth);
-        }
-
-        function activateStealth() {
-             const url = document.getElementById('stealth-link-input').value || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
-             stealthFrame.src = url;
-             stealthLayer.style.display = 'flex';
-        }
 
         // --- User Profile ---
         function loadUserProfile() {
@@ -985,8 +958,19 @@
                 .catch((err) => console.error("Error sending message:", err));
         }
 
-        // --- Visual feedback for length
+        // --- FIXED INPUT LOGIC ---
         const msgInput = document.getElementById('msg-input');
+        
+        // Explicitly bind keydown to ensure only Enter triggers send
+        msgInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault(); // Prevent newline
+                sendMessage();
+            }
+            // Allow Shift+Enter for newline (default behavior)
+        });
+
+        // Visual feedback for length
         msgInput.addEventListener('input', () => {
             if (msgInput.value.length > 1500) {
                 msgInput.classList.add('error');
@@ -1010,14 +994,32 @@
                 type: type,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
+
+            // Update Counter for Offline/Online viewing
+            updateAlertCounter(type);
         }
 
         function showSmokeEffect() {
             const smoke = document.getElementById('smoke-overlay');
-            // Reset animation
-            smoke.style.animation = 'none';
-            smoke.offsetHeight; /* trigger reflow */
-            smoke.style.animation = 'smokeDiffuse 4s ease-out forwards';
+            // Reset animation by removing and re-adding class
+            smoke.classList.remove('smoke-active');
+            void smoke.offsetWidth; // trigger reflow
+            smoke.classList.add('smoke-active');
+        }
+
+        function updateAlertCounter(type) {
+            // Get or create counter doc for this chat
+            const counterRef = db.collection("counters").doc(currentChatId);
+            
+            counterRef.get().then(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    const currentCount = data[type] || 0;
+                    counterRef.update({ [type]: currentCount + 1 });
+                } else {
+                    counterRef.set({ [type]: 1 });
+                }
+            });
         }
 
         function checkForAlerts() {
@@ -1029,6 +1031,20 @@
                     if (alert.timestamp && alert.timestamp.toDate() > fiveSecondsAgo) {
                         showOverlay(alert.type);
                     }
+                }
+            });
+            
+            // Load last counts for display
+            loadAlertCounts();
+        }
+
+        function loadAlertCounts() {
+            db.collection("counters").doc(currentChatId).onSnapshot((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    // Display counts somewhere? Maybe in header or tooltip?
+                    // For now, let's just log it or we can add a small indicator in the header
+                    console.log(`Vapes: ${data.vape || 0}, Carts: ${data.cart || 0}`);
                 }
             });
         }
@@ -1062,6 +1078,12 @@
                     stealthFrame.src = '';
                 }
             }
+        });
+
+        document.getElementById('stealth-activate-btn').addEventListener('click', () => {
+             const url = document.getElementById('stealth-link-input').value || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
+             stealthFrame.src = url;
+             stealthLayer.style.display = 'flex';
         });
 
         // --- Emoji Picker ---
