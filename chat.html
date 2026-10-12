@@ -614,14 +614,14 @@
                 <span class="channel-hash">#</span><span id="current-chat-name">general</span>
             </div>
             <div class="header-buttons">
-                <button class="icon-btn" onclick="openCallModal()" title="Start Call">📞</button>
-                <button class="icon-btn" onclick="triggerAlert('blinker')" title="Blinker Alert">⚠️</button>
+                <button class="icon-btn" id="btn-call" title="Start Call">📞</button>
+                <button class="icon-btn" id="btn-blinker" title="Blinker Alert">⚠️</button>
                 <!-- Renamed to Vape -->
-                <button class="icon-btn" onclick="triggerAlert('vape')" title="Vape Break">💨</button>
+                <button class="icon-btn" id="btn-vape" title="Vape Break">💨</button>
                 <!-- Added Cart Button -->
-                <button class="icon-btn" onclick="triggerAlert('cart')" title="Cart Break">🛒</button>
-                <button class="icon-btn" onclick="openRulesModal()" title="View Rules">📜</button>
-                <button class="icon-btn" onclick="toggleModTools()" title="Mod Tools">🛡️</button>
+                <button class="icon-btn" id="btn-cart" title="Cart Break">🛒</button>
+                <button class="icon-btn" id="btn-rules" title="View Rules">📜</button>
+                <button class="icon-btn" id="btn-mod" title="Mod Tools">🛡️</button>
             </div>
         </div>
 
@@ -630,8 +630,9 @@
         </div>
 
         <div class="input-area">
-            <button class="input-icon-btn" onclick="document.getElementById('file-input').click()">📎</button>
+            <button class="input-icon-btn" id="btn-file">📎</button>
             <input type="file" id="file-input" style="display:none" onchange="handleFileUpload(this)">
+            <!-- FIXED INPUT: Added autocomplete="off" and removed any inline events -->
             <input type="text" id="msg-input" placeholder="Message #general" autocomplete="off" maxlength="1500">
             <button class="input-icon-btn" id="emoji-trigger">😊</button>
         </div>
@@ -763,10 +764,40 @@
                 checkForAlerts();
                 setupDevMode();
                 loadChannels();
+                setupEventListeners(); // NEW: Centralized event listeners
             } else {
                 window.location.href = "index.html";
             }
         });
+
+        function setupEventListeners() {
+            // Fix Input Issue: Explicitly bind keydown to input
+            const msgInput = document.getElementById('msg-input');
+            msgInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault(); // Prevent newline
+                    sendMessage();
+                }
+            });
+
+            // Button Listeners
+            document.getElementById('btn-call').addEventListener('click', openCallModal);
+            document.getElementById('btn-blinker').addEventListener('click', () => triggerAlert('blinker'));
+            document.getElementById('btn-vape').addEventListener('click', () => triggerAlert('vape'));
+            document.getElementById('btn-cart').addEventListener('click', () => triggerAlert('cart'));
+            document.getElementById('btn-rules').addEventListener('click', openRulesModal);
+            document.getElementById('btn-mod').addEventListener('click', toggleModTools);
+            document.getElementById('btn-file').addEventListener('click', () => document.getElementById('file-input').click());
+            
+            // Stealth Activate
+            document.getElementById('stealth-activate-btn').addEventListener('click', activateStealth);
+        }
+
+        function activateStealth() {
+             const url = document.getElementById('stealth-link-input').value || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
+             stealthFrame.src = url;
+             stealthLayer.style.display = 'flex';
+        }
 
         // --- User Profile ---
         function loadUserProfile() {
@@ -954,18 +985,8 @@
                 .catch((err) => console.error("Error sending message:", err));
         }
 
-        // --- FIXED INPUT LOGIC ---
+        // --- Visual feedback for length
         const msgInput = document.getElementById('msg-input');
-        
-        // Explicitly bind keydown to ensure only Enter triggers send
-        msgInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault(); // Prevent newline
-                sendMessage();
-            }
-        });
-
-        // Visual feedback for length
         msgInput.addEventListener('input', () => {
             if (msgInput.value.length > 1500) {
                 msgInput.classList.add('error');
@@ -1041,12 +1062,6 @@
                     stealthFrame.src = '';
                 }
             }
-        });
-
-        document.getElementById('stealth-activate-btn').addEventListener('click', () => {
-             const url = document.getElementById('stealth-link-input').value || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
-             stealthFrame.src = url;
-             stealthLayer.style.display = 'flex';
         });
 
         // --- Emoji Picker ---
