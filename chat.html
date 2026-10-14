@@ -256,6 +256,14 @@
             font-size: 12px;
             font-weight: bold;
             margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .mod-icon {
+            color: #FFD700; /* Gold */
+            font-size: 14px;
         }
 
         .message-text {
@@ -999,12 +1007,21 @@
                         div.className = `message ${msg.senderId === currentUser.uid ? 'self' : 'other'}`;
                         div.dataset.id = doc.id;
 
-                        // Get username/color for other users
+                        // Get username/color/mod status for other users
                         if (msg.senderId !== currentUser.uid) {
                             db.collection("users").doc(msg.senderId).get().then(userDoc => {
                                 const userData = userDoc.data();
                                 const author = document.createElement("div");
                                 author.className = "message-author";
+                                
+                                // Add Crown Icon if Mod
+                                if (userData?.isModerator) {
+                                    const crown = document.createElement("span");
+                                    crown.className = "mod-icon";
+                                    crown.textContent = "👑";
+                                    author.appendChild(crown);
+                                }
+
                                 author.textContent = userData?.username || "Unknown";
                                 if(userData?.gradient) author.classList.add("gradient-name");
                                 if(userData?.color) author.style.color = userData.color;
@@ -1013,6 +1030,15 @@
                         } else {
                             const author = document.createElement("div");
                             author.className = "message-author";
+                            
+                            // Check if self is mod
+                            if (currentUser?.isModerator) {
+                                const crown = document.createElement("span");
+                                crown.className = "mod-icon";
+                                crown.textContent = "👑";
+                                author.appendChild(crown);
+                            }
+                            
                             author.textContent = "You";
                             div.prepend(author);
                         }
@@ -1409,13 +1435,26 @@
             panel.style.display = panel.style.display === "block" ? "none" : "block";
         }
 
-        function addModerator() {
+        // FIXED: Add Moderator Logic
+        async function addModerator() {
             const uid = prompt("Enter User ID to make Moderator:");
-            if (uid) {
-                db.collection("users").doc(uid).update({
-                    isModerator: true
-                });
-                alert("User is now a moderator!");
+            if (!uid) return;
+
+            try {
+                const userRef = db.collection("users").doc(uid);
+                const doc = await userRef.get();
+
+                if (doc.exists) {
+                    await userRef.update({
+                        isModerator: true
+                    });
+                    alert(`${doc.data().username || uid} is now a moderator! 👑`);
+                } else {
+                    alert("User ID not found.");
+                }
+            } catch (error) {
+                console.error("Error adding moderator:", error);
+                alert("An error occurred while updating the user.");
             }
         }
 
