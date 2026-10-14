@@ -904,6 +904,7 @@
                 initEmojiPicker();
                 setupDevMode();
                 updateSidebarProfile();
+                loadStealthUrl(); // Step 6: Load last used stealth URL
             } else {
                 window.location.href = "index.html";
             }
@@ -949,6 +950,19 @@
                 document.getElementById("setting-gradient").checked = data?.gradient || false;
             });
         }
+
+        // --- Step 6: Stealth URL Persistence ---
+        function loadStealthUrl() {
+            const savedUrl = localStorage.getItem('lastStealthUrl');
+            if (savedUrl) {
+                document.getElementById("stealth-link-input").value = savedUrl;
+            }
+        }
+
+        // Save URL on every keystroke
+        document.getElementById("stealth-link-input").addEventListener("input", (e) => {
+            localStorage.setItem('lastStealthUrl', e.target.value);
+        });
 
         // --- Settings Logic ---
         function toggleSettings() {
