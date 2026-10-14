@@ -824,7 +824,7 @@
     <div id="rules-modal" class="modal">
         <div class="modal-content">
             <button class="close-btn" onclick="closeRulesModal()">✕</button>
-            <h3 class="modal-title">Channel Rules</h3>
+            <h3 class="modal-title">Channel Rules (#<span id="rules-channel-name"></span>)</h3>
             <textarea id="rules-textarea" class="setting-input" rows="10"></textarea>
             <button class="stealth-btn" onclick="saveRules()" style="width:100%; margin-top:10px;">Save Rules</button>
         </div>
@@ -1412,8 +1412,17 @@
         // --- Rules System ---
         function openRulesModal() {
             document.getElementById("rules-modal").style.display = "flex";
+            document.getElementById("rules-channel-name").textContent = currentChatId.replace("dm-", "");
+            
+            // Load existing rules
             db.collection("chats").doc(currentChatId).get().then(doc => {
-                document.getElementById("rules-textarea").value = doc.data()?.rules || "No rules set.";
+                if (doc.exists) {
+                    document.getElementById("rules-textarea").value = doc.data().rules || "No rules set.";
+                } else {
+                    // Default rules if none exist
+                    const defaultRules = "1. Be respectful.\n2. No spamming.\n3. Keep it clean.";
+                    document.getElementById("rules-textarea").value = defaultRules;
+                }
             });
         }
 
