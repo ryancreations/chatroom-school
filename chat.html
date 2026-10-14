@@ -631,6 +631,24 @@
                 background: radial-gradient(circle at center, rgba(150,150,150,0.2) 0%, transparent 90%);
             }
         }
+        
+        /* Connection Status Styles */
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .status-connecting { background-color: #F0B232; animation: pulse 1s infinite; }
+        .status-connected { background-color: #3BA55C; }
+        .status-failed { background-color: #ED4245; }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -781,6 +799,13 @@
             <button class="close-btn" onclick="closeCallModal()">✕</button>
             <h3 class="modal-title">Start Call</h3>
             <div id="my-peer-id" style="margin-bottom: 10px; font-size: 12px;"></div>
+            
+            <!-- Connection Status Indicator -->
+            <div id="connection-status" style="margin-bottom: 10px; font-size: 12px; display: none;">
+                <span id="status-dot" class="status-indicator status-connecting"></span>
+                <span id="status-text">Connecting...</span>
+            </div>
+
             <input type="text" id="room-id-input" class="setting-input" placeholder="Enter Room ID or Leave Empty to Create">
             <button class="stealth-btn" onclick="createOrJoinRoom()" style="width:100%; margin-top:10px;">Connect</button>
             <div id="room-info" style="margin-top: 10px; font-size: 12px;"></div>
@@ -845,6 +870,20 @@
         let activeRoomId = null;
         let currentMsgId = null;
         let emojiPicker = null;
+        let currentCall = null; // Track the active call object
+
+        // Robust ICE Configuration
+        const iceConfig = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' }
+            ],
+            iceTransportPolicy: 'all', // Allow both direct and relayed connections
+            sdpSemantics: 'unified-plan' // More stable for modern browsers
+        };
 
         // --- Initialization ---
         auth.onAuthStateChanged(user => {
@@ -1002,6 +1041,15 @@
                         div.appendChild(time);
 
                         container.appendChild(div);
+
+                        // IF IN CALL, ADD TO IN-CALL CHAT TOO
+                        if (document.getElementById("video-overlay").style.display === "flex") {
+                            const inCallMsg = document.createElement("div");
+                            inCallMsg.className = "in-call-msg";
+                            inCallMsg.innerHTML = `<strong>${msg.senderId === currentUser.uid ? 'You' : (db.collection("users").doc(msg.senderId).get().then(d => d.data()?.username || 'User'))}:</strong> ${msg.text}`;
+                            inCallMessages.appendChild(inCallMsg);
+                            inCallMessages.scrollTop = inCallMessages.scrollHeight;
+                        }
                     });
                     container.scrollTop = container.scrollHeight;
                 });
@@ -1158,13 +1206,14 @@
         // --- Video Calls (PeerJS) ---
         function initPeer() {
             if (peer) return;
-            peer = new Peer();
+            peer = new Peer(undefined, iceConfig);
             
             peer.on('open', id => {
                 document.getElementById("my-peer-id").textContent = "Your ID: " + id;
             });
 
             peer.on('call', call => {
+                updateStatus('connecting');
                 navigator.mediaDevices.getUserMedia({ audio: true, video: true })
                     .then(stream => {
                         myStream = stream;
@@ -1173,10 +1222,47 @@
                         call.on('stream', remoteStream => {
                             document.getElementById("remote-video").srcObject = remoteStream;
                             document.getElementById("video-overlay").style.display = "flex";
+                            updateStatus('connected');
                         });
+                        call.on('close', endCall);
                     })
-                    .catch(err => console.error("Failed to get local stream", err));
+                    .catch(err => {
+                        console.error("Failed to get local stream", err);
+                        updateStatus('failed');
+                        alert("Could not start camera/mic.");
+                    });
             });
+            
+            peer.on('disconnected', () => {
+                console.log("Disconnected from PeerJS server");
+                updateStatus('failed');
+            });
+            
+            peer.on('error', (err) => {
+                console.error("PeerJS Error:", err);
+                updateStatus('failed');
+                alert("Connection error: " + err.type);
+            });
+        }
+
+        function updateStatus(status) {
+            const dot = document.getElementById("status-dot");
+            const text = document.getElementById("status-text");
+            const container = document.getElementById("connection-status");
+            
+            container.style.display = "block";
+            dot.className = "status-indicator"; // Reset classes
+            
+            if (status === 'connecting') {
+                dot.classList.add("status-connecting");
+                text.textContent = "Connecting...";
+            } else if (status === 'connected') {
+                dot.classList.add("status-connected");
+                text.textContent = "Connected";
+            } else if (status === 'failed') {
+                dot.classList.add("status-failed");
+                text.textContent = "Failed";
+            }
         }
 
         document.getElementById("btn-call").onclick = () => {
@@ -1187,24 +1273,53 @@
         function createOrJoinRoom() {
             const roomId = document.getElementById("room-id-input").value || Math.random().toString(36).substr(2, 9);
             document.getElementById("room-info").textContent = "Connecting to room: " + roomId;
+            updateStatus('connecting');
             
-            // For simplicity, we assume the user wants to call someone who has this room ID
-            // In a full app, you'd map Room IDs to Peer IDs in Firestore
-            // Here we just try to connect to a peer with that ID
+            // We assume the user wants to call someone who has this room ID
+            // Note: This is a simplified connection. Usually you'd map Room IDs to Peer IDs in Firestore
+            // Here we just try to call the Peer directly if they are online and using that ID
             
-            // Note: This is a simplified connection. Usually you need a signaling server mapping RoomID -> PeerID
-            // We will attempt to call the Peer directly if they are online and using that ID
             if(peer) {
                 navigator.mediaDevices.getUserMedia({ audio: true, video: true })
                     .then(stream => {
                         myStream = stream;
                         document.getElementById("local-video").srcObject = stream;
-                        const call = peer.call(roomId, stream);
-                        call.on('stream', remoteStream => {
-                            document.getElementById("remote-video").srcObject = remoteStream;
-                            document.getElementById("video-overlay").style.display = "flex";
-                        });
-                        call.on('close', endCall);
+                        
+                        // Wait a brief moment for ICE gathering to start
+                        setTimeout(() => {
+                            const call = peer.call(roomId, stream);
+                            currentCall = call; // Store reference
+                            
+                            call.on('stream', remoteStream => {
+                                document.getElementById("remote-video").srcObject = remoteStream;
+                                document.getElementById("video-overlay").style.display = "flex";
+                                updateStatus('connected');
+                            });
+                            
+                            call.on('close', () => {
+                                endCall();
+                            });
+                            
+                            call.on('error', (err) => {
+                                console.error("Call Error:", err);
+                                updateStatus('failed');
+                                alert("Call failed: " + err.type);
+                            });
+                            
+                            // Listen for ICE connection state changes
+                            call.on('iceconnectionstatechange', () => {
+                                if (call.peerConnection.iceConnectionState === 'connected' || call.peerConnection.iceConnectionState === 'completed') {
+                                    updateStatus('connected');
+                                } else if (call.peerConnection.iceConnectionState === 'failed') {
+                                    updateStatus('failed');
+                                }
+                            });
+                        }, 500); // Small delay to allow ICE candidates to gather
+                    })
+                    .catch(err => {
+                        console.error("Failed to get local stream", err);
+                        updateStatus('failed');
+                        alert("Could not start camera/mic.");
                     });
             }
         }
@@ -1215,11 +1330,19 @@
                 myStream.getTracks().forEach(track => track.stop());
                 myStream = null;
             }
+            if (currentCall) {
+                currentCall.close();
+                currentCall = null;
+            }
             if (peer) {
                 peer.disconnect();
                 peer = null;
             }
             document.getElementById("call-modal").style.display = "none";
+            updateStatus('failed'); // Reset status
+            setTimeout(() => {
+                document.getElementById("connection-status").style.display = "none";
+            }, 2000);
         }
 
         function toggleMute() {
@@ -1253,28 +1376,6 @@
                 }
             }
         });
-
-        // Listen for messages specifically for in-call view (optional optimization)
-        // But since we already listenToMessages globally, we can just append to in-call list too
-        // To avoid duplication, we'll just rely on the global listener updating the main chat,
-        // but let's make sure the in-call box updates too.
-        
-        // Override listenToMessages slightly to also update in-call if overlay is open
-        const originalListenToMessages = listenToMessages;
-        // Actually, let's just add a separate listener for in-call chat to keep it clean
-        let inCallListener = null;
-        
-        // We'll hook into the existing flow: When a message comes in, if in-call overlay is open, add it there
-        const originalOnSnapshot = firebase.firestore.Collection.prototype.onSnapshot;
-        
-        // Simpler approach: Just modify the existing listenToMessages to check for overlay
-        // But since I can't easily patch the prototype without side effects, 
-        // I'll just ensure the global listener adds to the in-call div if it exists.
-        
-        // Let's refactor listenToMessages to accept a container selector
-        // For now, I'll just add a small snippet inside listenToMessages
-        
-        // Since I am replacing the whole file, I will integrate this into the existing function below.
 
         // --- Rules System ---
         function openRulesModal() {
@@ -1446,76 +1547,6 @@
                 sendMessage();
             }
         });
-
-        // --- Refactored listenToMessages to include In-Call Updates ---
-        function listenToMessages() {
-            db.collection("chats").doc(currentChatId).collection("messages")
-                .orderBy("timestamp", "asc")
-                .onSnapshot(snapshot => {
-                    const container = document.getElementById("messages");
-                    container.innerHTML = ""; 
-                    
-                    snapshot.forEach(doc => {
-                        const msg = doc.data();
-                        const div = document.createElement("div");
-                        div.className = `message ${msg.senderId === currentUser.uid ? 'self' : 'other'}`;
-                        div.dataset.id = doc.id;
-
-                        // Get username/color for other users
-                        if (msg.senderId !== currentUser.uid) {
-                            db.collection("users").doc(msg.senderId).get().then(userDoc => {
-                                const userData = userDoc.data();
-                                const author = document.createElement("div");
-                                author.className = "message-author";
-                                author.textContent = userData?.username || "Unknown";
-                                if(userData?.gradient) author.classList.add("gradient-name");
-                                if(userData?.color) author.style.color = userData.color;
-                                div.prepend(author);
-                            });
-                        } else {
-                            const author = document.createElement("div");
-                            author.className = "message-author";
-                            author.textContent = "You";
-                            div.prepend(author);
-                        }
-
-                        // Handle Links
-                        const textDiv = document.createElement("div");
-                        textDiv.className = "message-text";
-                        
-                        if (msg.text.startsWith("http")) {
-                            // Simple Link Embed
-                            const embed = document.createElement("div");
-                            embed.style.padding = "10px";
-                            embed.style.borderLeft = "4px solid #5865F2";
-                            embed.style.background = "#2B2D31";
-                            embed.innerHTML = `<strong>Link:</strong> <a href="${msg.text}" target="_blank">${msg.text}</a>`;
-                            textDiv.appendChild(embed);
-                        } else {
-                            textDiv.textContent = msg.text;
-                        }
-                        div.appendChild(textDiv);
-
-                        const time = document.createElement("div");
-                        time.className = "message-time";
-                        const date = msg.timestamp ? new Date(msg.timestamp.toMillis()) : new Date();
-                        time.textContent = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                        div.appendChild(time);
-
-                        container.appendChild(div);
-
-                        // IF IN CALL, ADD TO IN-CALL CHAT TOO
-                        if (document.getElementById("video-overlay").style.display === "flex") {
-                            const inCallMsg = document.createElement("div");
-                            inCallMsg.className = "in-call-msg";
-                            inCallMsg.innerHTML = `<strong>${msg.senderId === currentUser.uid ? 'You' : (db.collection("users").doc(msg.senderId).get().then(d => d.data()?.username || 'User'))}:</strong> ${msg.text}`;
-                            inCallMessages.appendChild(inCallMsg);
-                            inCallMessages.scrollTop = inCallMessages.scrollHeight;
-                        }
-                    });
-                    container.scrollTop = container.scrollHeight;
-                });
-        }
 
     </script>
 </body>
