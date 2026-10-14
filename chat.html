@@ -328,6 +328,15 @@
             color: white;
         }
 
+        /* --- Emoji Picker (Step 7) --- */
+        #emoji-picker-container {
+            position: absolute;
+            bottom: 60px; /* Floats nicely above input */
+            left: 10px;
+            z-index: 100; /* Below modals (2000) but above input (10) */
+            /* Ensure it doesn't overlap critical UI by being offset from edges */
+        }
+
         /* --- Alerts --- */
         .alert-overlay {
             position: fixed;
@@ -703,13 +712,13 @@
             </div>
             <div class="header-buttons">
                 <button class="icon-btn" id="btn-call" title="Start Call">📞</button>
-                <button class="icon-btn" id="btn-blinker" title="Blinker Alert">Blink⚠️</button>
+                <button class="icon-btn" id="btn-blinker" title="Blinker Alert">⚠️</button>
                 <!-- Renamed to Vape -->
-                <button class="icon-btn" id="btn-vape" title="Vape Break">V@pe💨</button>
+                <button class="icon-btn" id="btn-vape" title="Vape Break">💨</button>
                 <!-- Added Cart Button -->
-                <button class="icon-btn" id="btn-cart" title="Cart Break">Y@rt🛒</button>
-                <button class="icon-btn" id="btn-rules" title="View Rules">Rules📜</button>
-                <button class="icon-btn" id="btn-mod" title="Mod Tools">ModTools🛡️</button>
+                <button class="icon-btn" id="btn-cart" title="Cart Break">🛒</button>
+                <button class="icon-btn" id="btn-rules" title="View Rules">📜</button>
+                <button class="icon-btn" id="btn-mod" title="Mod Tools">🛡️</button>
             </div>
         </div>
 
@@ -757,7 +766,7 @@
     <!-- Alert Overlays -->
     <div id="blinker-alert" class="alert-overlay blinker-alert">
         <h1>BLINKER ALERT!</h1>
-        <p>Take a Fat Fucking Blinker, like rn!</p>
+        <p>Blinkers out in the hallway!</p>
     </div>
 
     <div id="vape-alert" class="alert-overlay vape-alert">
@@ -768,7 +777,7 @@
     <!-- NEW: Cart Alert Overlay -->
     <div id="cart-alert" class="alert-overlay cart-alert">
         <h1>CART BREAK!</h1>
-        <h2>Munchie Time</h2>
+        <h2>Everyone to the cafeteria!</h2>
     </div>
 
     <!-- Stealth Layer -->
@@ -776,11 +785,13 @@
         <iframe id="stealth-frame" src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1"></iframe>
         <div class="stealth-ui-overlay">
             <div class="stealth-top-bar">
-                <span>Mr. McAulay's Math Class</span>
+                <span>Mr. Anderson's Math Class</span>
                 <span>10:42 AM</span>
             </div>
             <div class="stealth-content">
-               
+                <h3>Chapter 4: Derivatives</h3>
+                <p>Today we are going to discuss the fundamental theorem of calculus and how it applies to real-world problems.</p>
+                <p>Please open your textbooks to page 142.</p>
             </div>
         </div>
     </div>
