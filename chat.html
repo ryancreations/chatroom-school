@@ -1046,9 +1046,15 @@
                         if (document.getElementById("video-overlay").style.display === "flex") {
                             const inCallMsg = document.createElement("div");
                             inCallMsg.className = "in-call-msg";
-                            inCallMsg.innerHTML = `<strong>${msg.senderId === currentUser.uid ? 'You' : (db.collection("users").doc(msg.senderId).get().then(d => d.data()?.username || 'User'))}:</strong> ${msg.text}`;
-                            inCallMessages.appendChild(inCallMsg);
-                            inCallMessages.scrollTop = inCallMessages.scrollHeight;
+                            
+                            // Fetch username for display in in-call chat
+                            let displayName = msg.senderId === currentUser.uid ? 'You' : 'User';
+                            db.collection("users").doc(msg.senderId).get().then(d => {
+                                if(d.exists) displayName = d.data()?.username || 'User';
+                                inCallMsg.innerHTML = `<strong>${displayName}:</strong> ${msg.text}`;
+                                inCallMessages.appendChild(inCallMsg);
+                                inCallMessages.scrollTop = inCallMessages.scrollHeight;
+                            });
                         }
                     });
                     container.scrollTop = container.scrollHeight;
