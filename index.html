@@ -10,17 +10,103 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #313338; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { background-color: #383A40; padding: 30px; border-radius: 12px; width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; }
-        h2 { margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: none; background-color: #1E1F22; color: white; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .btn-google { background-color: white; color: #444; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #313338; 
+            color: white; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+        .container { 
+            background-color: #383A40; 
+            padding: 30px; 
+            border-radius: 12px; 
+            width: 380px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); 
+            text-align: center; 
+        }
+        h2 { margin-bottom: 20px; font-size: 24px; }
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            margin: 8px 0; 
+            border-radius: 6px; 
+            border: none; 
+            background-color: #1E1F22; 
+            color: white; 
+            box-sizing: border-box; 
+            font-size: 14px;
+        }
+        input::placeholder { color: #72767D; }
+        button { 
+            width: 100%; 
+            padding: 12px; 
+            margin-top: 10px; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 14px;
+            transition: opacity 0.2s;
+        }
+        button:hover { opacity: 0.9; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .btn-google { 
+            background-color: white; 
+            color: #444; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px; 
+        }
         .btn-primary { background-color: #5865F2; color: white; }
-        .preview-img { width: 100%; height: 100px; object-fit: cover; border-radius: 6px; margin-top: 5px; background: #2B2D31; }
+        .preview-img { 
+            width: 100%; 
+            height: 100px; 
+            object-fit: cover; 
+            border-radius: 6px; 
+            margin-top: 5px; 
+            background: #2B2D31; 
+            display: block;
+        }
         .hidden { display: none; }
-        #error-msg { color: #ed4245; font-size: 12px; margin-bottom: 10px; min-height: 15px;}
-        .divider { margin: 20px 0; color: #888; font-size: 12px; text-transform: uppercase; }
+        #error-msg { 
+            color: #ed4245; 
+            font-size: 12px; 
+            margin-bottom: 10px; 
+            min-height: 15px;
+            word-wrap: break-word;
+        }
+        .divider { 
+            margin: 20px 0; 
+            color: #888; 
+            font-size: 12px; 
+            text-transform: uppercase; 
+            position: relative;
+        }
+        .divider::before, .divider::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background-color: #40444B;
+        }
+        .divider::before { left: 0; }
+        .divider::after { right: 0; }
+        
+        .toggle-btn {
+            background: transparent;
+            color: #00AFF4;
+            margin-top: 5px;
+        }
+        .toggle-btn:hover {
+            background: rgba(0, 175, 244, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -31,7 +117,7 @@
 
     <!-- Background Selection -->
     <input type="text" id="lobby-bg-url" placeholder="Paste Image URL for Chat Background..." onchange="updateLobbyPreview()">
-    <img id="lobby-preview" class="preview-img" style="height: 100px;">
+    <img id="lobby-preview" class="preview-img" style="height: 100px;" alt="Background Preview">
 
     <button class="btn-google" onclick="loginWithGoogle()">
         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> 
@@ -45,7 +131,7 @@
     <input type="password" id="password" placeholder="Password" autocomplete="off">
 
     <button id="action-btn" class="btn-primary" onclick="handleAuth()">Login</button>
-    <button class="btn-secondary" style="background:transparent; color:#00AFF4;" onclick="toggleMode()">Create an account</button>
+    <button class="btn-secondary toggle-btn" onclick="toggleMode()">Create an account</button>
 </div>
 
 <script>
@@ -60,9 +146,17 @@
     measurementId: "G-QS6SVMF7FE"
   };
   
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
+  // Initialize Firebase only after DOM is ready to ensure scripts are loaded
+  document.addEventListener('DOMContentLoaded', () => {
+      try {
+          firebase.initializeApp(firebaseConfig);
+          window.auth = firebase.auth();
+          window.db = firebase.firestore();
+      } catch (error) {
+          showError("Failed to initialize Firebase. Check console.");
+          console.error(error);
+      }
+  });
 
   let isLoginMode = true;
 
@@ -72,29 +166,55 @@
       document.querySelector('.btn-secondary').textContent = isLoginMode ? "Create an account" : "Have an account? Login";
       document.getElementById('form-title').textContent = isLoginMode ? "Login to SchoolChat" : "Create Account";
       document.getElementById('error-msg').innerText = "";
+      
+      // Clear inputs when switching modes for cleaner UX
+      document.getElementById('username').value = '';
+      document.getElementById('email').value = '';
+      document.getElementById('password').value = '';
   }
 
   function showError(msg) {
-      document.getElementById('error-msg').innerText = msg;
+      const errorEl = document.getElementById('error-msg');
+      errorEl.innerText = msg;
+      // Shake animation for visual feedback
+      errorEl.style.animation = "none";
+      errorEl.offsetHeight; /* trigger reflow */
+      errorEl.style.animation = "shake 0.5s";
   }
 
+  // Add shake keyframes dynamically
+  const styleSheet = document.createElement("style");
+  styleSheet.innerText = `
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); }
+      75% { transform: translateX(-5px); }
+      100% { transform: translateX(0); }
+    }
+  `;
+  document.head.appendChild(styleSheet);
+
   function updateLobbyPreview() {
-      const url = document.getElementById('lobby-bg-url').value;
+      const url = document.getElementById('lobby-bg-url').value.trim();
       const preview = document.getElementById('lobby-preview');
       if(url) {
           preview.src = url;
+          preview.onerror = () => { preview.src = ""; }; // Hide if invalid
       } else {
           preview.src = "";
       }
   }
 
-  function loginWithGoogle() {
+  async function loginWithGoogle() {
       const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider).then((result) => {
+      try {
+          const result = await window.auth.signInWithPopup(provider);
           const user = result.user;
           const bgUrl = document.getElementById('lobby-bg-url').value;
           
-          db.collection("users").doc(user.uid).set({
+          // Set up user data
+          await window.db.collection("users").doc(user.uid).set({
               username: user.displayName || "User_" + Math.floor(Math.random()*1000),
               email: user.email,
               photoURL: user.photoURL,
@@ -103,61 +223,92 @@
               nameColor: "#FFFFFF",
               gradientEnabled: false,
               customBackground: bgUrl 
-          }, { merge: true }).then(() => {
-              updateStatus(true);
-              enterApp();
-          });
-      }).catch((error) => showError(error.message));
+          }, { merge: true });
+          
+          updateStatus(true);
+          enterApp();
+      } catch (error) {
+          console.error(error);
+          showError(error.message || "Google Sign-In failed");
+      }
   }
 
-  function handleAuth() {
+  async function handleAuth() {
       const email = document.getElementById('email').value.trim();
       const pass = document.getElementById('password').value.trim();
       const username = document.getElementById('username').value.trim();
+      
       document.getElementById('error-msg').innerText = "";
 
       if (!email || !pass) return showError("Please enter email and password.");
 
       if (isLoginMode) {
-          auth.signInWithEmailAndPassword(email, pass).then((cred) => {
+          // LOGIN MODE
+          try {
+              await window.auth.signInWithEmailAndPassword(email, pass);
               updateStatus(true);
               enterApp();
-          }).catch((e) => showError(e.message));
+          } catch (e) {
+              // Map common errors to user-friendly messages
+              let msg = e.message;
+              if (msg.includes("auth/user-not-found")) msg = "No account found with that email.";
+              if (msg.includes("auth/wrong-password") || msg.includes("auth/invalid-credential")) msg = "Incorrect password.";
+              if (msg.includes("auth/too-many-requests")) msg = "Too many attempts. Try again later.";
+              showError(msg);
+          }
       } else {
+          // REGISTER MODE
           if (!username) return showError("Please pick a username.");
           
-          db.collection("users").where("username", "==", username.toLowerCase()).get().then((snap) => {
-              if (!snap.empty) return showError("Username already taken!");
+          try {
+              // Create auth user first
+              const cred = await window.auth.createUserWithEmailAndPassword(email, pass);
               
-              auth.createUserWithEmailAndPassword(email, pass).then((cred) => {
-                  cred.user.updateProfile({ displayName: username }).then(() => {
-                      const bgUrl = document.getElementById('lobby-bg-url').value;
-                      db.collection("users").doc(cred.user.uid).set({
-                          username: username.toLowerCase(),
-                          email: email,
-                          photoURL: "",
-                          friends: [],
-                          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                          status: "online",
-                          nameColor: "#FFFFFF",
-                          gradientEnabled: false,
-                          customBackground: bgUrl 
-                      });
-                      updateStatus(true);
-                      enterApp();
-                  });
-              }).catch((e) => showError(e.message));
+              // Update profile immediately
+              await cred.user.updateProfile({ displayName: username });
+              
+              // Now check if username is unique in Firestore
+              // We do this AFTER creation to prevent race conditions where two users claim the same name
+              const snap = await window.db.collection("users").where("username", "==", username.toLowerCase()).get();
+              
+              if (!snap.empty) {
+                  // Username taken, delete the auth user we just made to clean up
+                  await cred.user.delete();
+                  return showError("Username '" + username + "' is already taken!");
+              }
+
+              // Save to Firestore
+              const bgUrl = document.getElementById('lobby-bg-url').value;
+              await window.db.collection("users").doc(cred.user.uid).set({
+                  username: username.toLowerCase(),
+                  email: email,
+                  photoURL: "",
+                  friends: [],
+                  createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                  status: "online",
+                  nameColor: "#FFFFFF",
+                  gradientEnabled: false,
+                  customBackground: bgUrl 
               });
+              
+              updateStatus(true);
+              enterApp();
+              
+          } catch (e) {
+              let msg = e.message;
+              if (msg.includes("auth/email-already-in-use")) msg = "This email is already registered.";
+              if (msg.includes("auth/weak-password")) msg = "Password should be at least 6 characters.";
+              showError(msg);
           }
       }
   }
 
   function updateStatus(isOnline) {
-      if(auth.currentUser) {
-          db.collection("users").doc(auth.currentUser.uid).update({
+      if(window.auth && window.auth.currentUser) {
+          window.db.collection("users").doc(window.auth.currentUser.uid).update({
               status: isOnline ? "online" : "offline",
               lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-          });
+          }).catch(err => console.warn("Status update failed:", err));
       }
   }
 
@@ -165,7 +316,11 @@
       window.location.href = "chat.html";
   }
 
-  window.addEventListener('beforeunload', () => updateStatus(false));
+  window.addEventListener('beforeunload', () => {
+      if(window.auth && window.auth.currentUser) {
+          updateStatus(false);
+      }
+  });
 </script>
 
 </body>
