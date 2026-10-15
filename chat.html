@@ -716,149 +716,151 @@
                 <!-- Renamed to Vape -->
                 <button class="icon-btn" id="btn-vape" title="Vape Break">💨</button>
                 <!-- Added Cart Button -->
-                <button class="icon-btn" id="btn-cart" title="Cart Alert">🛒</button>
-                <button class="icon-btn" id="btn-rules" title="Rules">📜</button>
+                <button class="icon-btn" id="btn-cart" title="Cart Break">🛒</button>
+                <button class="icon-btn" id="btn-rules" title="View Rules">📜</button>
+                <button class="icon-btn" id="btn-mod" title="Mod Tools">🛡️</button>
             </div>
         </div>
 
         <div id="messages">
-            <!-- Messages will appear here -->
+            <!-- Messages go here -->
         </div>
 
         <div class="input-area">
-            <input type="file" id="image-upload" accept="image/*" style="display: none;">
-            <button id="upload-btn" class="input-icon-btn">📎</button>
-            <input type="text" id="msg-input" placeholder="Message #general">
-            <button id="emoji-trigger" class="input-icon-btn">😊</button>
+            <!-- File upload removed as requested -->
+            <input type="text" id="msg-input" placeholder="Message #general" autocomplete="off" maxlength="1500">
+            <button class="input-icon-btn" id="emoji-trigger">😊</button>
         </div>
-
-        <!-- Emoji Picker Container -->
-        <div id="emoji-picker-container"></div>
     </div>
 
     <!-- Settings Panel -->
     <div id="settings-panel" class="modal-panel">
-        <button class="close-btn" onclick="toggleSettings()">✖</button>
-        <h3>Settings</h3>
+        <button class="close-btn" onclick="toggleSettings()">✕</button>
         <div class="setting-row">
             <label class="setting-label">Username</label>
-            <input type="text" id="settings-username" class="setting-input">
+            <input type="text" id="setting-username" class="setting-input">
         </div>
         <div class="setting-row">
             <label class="setting-label">Avatar URL</label>
-            <input type="text" id="settings-avatar" class="setting-input">
+            <input type="text" id="setting-avatar" class="setting-input">
         </div>
         <div class="setting-row">
             <label class="setting-label">Name Color</label>
-            <input type="color" id="settings-color" class="setting-input" value="#ffffff">
+            <input type="color" id="setting-color" value="#ffffff">
         </div>
         <div class="setting-row">
-            <label class="setting-label">Gradient Names</label>
-            <input type="checkbox" id="settings-gradient-toggle">
+            <label class="setting-label">Gradient Name</label>
+            <input type="checkbox" id="setting-gradient">
         </div>
-        <div class="setting-row">
-            <label class="setting-label">Chat Background Image (URL)</label>
-            <input type="text" id="settings-bg-url" class="setting-input" placeholder="Image URL...">
-        </div>
-        <button id="save-settings-btn" class="mod-btn">Save Changes</button>
+        <button class="stealth-btn" onclick="saveSettings()" style="width:100%">Save Changes</button>
     </div>
 
-    <!-- Blinker Alert -->
+    <!-- Mod Tools -->
+    <div id="mod-tools-panel" class="modal-panel">
+        <button class="close-btn" onclick="toggleModTools()">✕</button>
+        <button class="mod-btn" onclick="addModerator()">Add Moderator</button>
+        <button class="mod-btn" onclick="kickUser()">Kick User</button>
+        <button class="mod-btn" onclick="banUser()">Ban User</button>
+    </div>
+
+    <!-- Alert Overlays -->
     <div id="blinker-alert" class="alert-overlay blinker-alert">
         <h1>BLINKER ALERT!</h1>
-        <p style="font-size: 24px;">Teacher is watching!</p>
+        <p>Blinkers out in the hallway!</p>
     </div>
 
-    <!-- Vape Alert -->
     <div id="vape-alert" class="alert-overlay vape-alert">
-        <h1>VAPE BREAK TIME</h1>
-        <p style="font-size: 24px;">Take a breath, clear your head.</p>
+        <h1>VAPE BREAK!</h1>
+        <p>Vapers to the bathroom!</p>
     </div>
 
-    <!-- Cart Alert -->
+    <!-- NEW: Cart Alert Overlay -->
     <div id="cart-alert" class="alert-overlay cart-alert">
-        <h1>CART ALERT!</h1>
-        <h2>New Item Added!</h2>
+        <h1>CART BREAK!</h1>
+        <h2>Everyone to the cafeteria!</h2>
     </div>
 
     <!-- Stealth Layer -->
     <div id="stealth-layer">
-        <iframe id="stealth-frame" src="" frameborder="0" allowfullscreen></iframe>
+        <iframe id="stealth-frame" src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1"></iframe>
         <div class="stealth-ui-overlay">
             <div class="stealth-top-bar">
-                <span>Chrome</span>
-                <span>school.google.com</span>
+                <span>Mr. Anderson's Math Class</span>
+                <span>10:42 AM</span>
             </div>
             <div class="stealth-content">
-                <h2>Loading Class Material...</h2>
-                <p>Please wait while we sync your assignments.</p>
+                <h3>Chapter 4: Derivatives</h3>
+                <p>Today we are going to discuss the fundamental theorem of calculus and how it applies to real-world problems.</p>
+                <p>Please open your textbooks to page 142.</p>
             </div>
         </div>
     </div>
 
-    <!-- Mod Tools Panel -->
-    <div id="mod-tools-panel" class="modal-panel">
-        <button class="close-btn" onclick="toggleModTools()">✖</button>
-        <h3>Mod Tools</h3>
-        <button class="mod-btn" id="delete-msg-btn">Delete Message</button>
-        <button class="mod-btn" id="edit-msg-btn">Edit Message</button>
-        <button class="mod-btn" id="view-data-btn">View Data</button>
+    <!-- Call Overlay -->
+    <div id="video-overlay">
+        <video id="remote-video" autoplay playsinline></video>
+        <video id="local-video" autoplay muted playsinline></video>
+        <div class="call-controls">
+            <button class="call-btn btn-mute" onclick="toggleMute()">🎤 Mute</button>
+            <button class="call-btn btn-hangup" onclick="endCall()">📞 Hang Up</button>
+        </div>
+        <div id="in-call-chat">
+            <div id="in-call-messages"></div>
+            <input type="text" id="in-call-input" placeholder="Type in call...">
+        </div>
     </div>
 
     <!-- Call Modal -->
     <div id="call-modal" class="modal">
         <div class="modal-content">
-            <h3>Your ID: <span id="my-peer-id">Generating...</span></h3>
-            <div class="setting-row">
-                <input type="text" id="room-id-input" class="setting-input" placeholder="Enter Room ID or leave blank to generate">
+            <button class="close-btn" onclick="closeCallModal()">✕</button>
+            <h3 class="modal-title">Start Call</h3>
+            <div id="my-peer-id" style="margin-bottom: 10px; font-size: 12px;"></div>
+            
+            <!-- Connection Status Indicator -->
+            <div id="connection-status" style="margin-bottom: 10px; font-size: 12px; display: none;">
+                <span id="status-dot" class="status-indicator status-connecting"></span>
+                <span id="status-text">Connecting...</span>
             </div>
-            <button id="create-room-btn" class="mod-btn">Create/Join Room</button>
-            <div id="active-room-info" style="margin-top: 10px; font-size: 12px; color: #B9BBBE;"></div>
-            <button id="close-call-modal-btn" class="mod-btn" style="background-color: #ED4245; margin-top: 10px;">Close</button>
-        </div>
-    </div>
 
-    <!-- Video Overlay -->
-    <div id="video-overlay">
-        <video id="remote-video" autoplay playsinline></video>
-        <video id="local-video" autoplay muted playsinline></video>
-        <div class="call-controls">
-            <button id="mute-btn" class="call-btn btn-mute">Mute</button>
-            <button id="hangup-btn" class="call-btn btn-hangup">Hang Up</button>
-        </div>
-        <!-- In-Call Chat Box -->
-        <div id="in-call-chat">
-            <div id="in-call-messages"></div>
-            <input type="text" id="in-call-input" placeholder="Chat in call...">
+            <input type="text" id="room-id-input" class="setting-input" placeholder="Enter Room ID or Leave Empty to Create">
+            <button class="stealth-btn" onclick="createOrJoinRoom()" style="width:100%; margin-top:10px;">Connect</button>
+            <div id="room-info" style="margin-top: 10px; font-size: 12px;"></div>
         </div>
     </div>
 
     <!-- Rules Modal -->
     <div id="rules-modal" class="modal">
         <div class="modal-content">
-            <h3 class="modal-title">Server Rules</h3>
-            <textarea id="rules-textarea" class="setting-input" style="height: 200px;"></textarea>
-            <button id="save-rules-btn" class="mod-btn">Save Rules</button>
-            <button id="close-rules-btn" class="mod-btn" style="background-color: #ED4245; margin-top: 10px;">Close</button>
-        </div>
-    </div>
-
-    <!-- Channel Create Modal -->
-    <div id="channel-modal" class="modal">
-        <div class="modal-content">
-            <h3 class="modal-title">Create Channel</h3>
-            <input type="text" id="new-channel-name" class="setting-input" placeholder="Channel Name (e.g., gaming)">
-            <button id="create-channel-btn" class="mod-btn">Create</button>
-            <button id="close-channel-modal-btn" class="mod-btn" style="background-color: #ED4245; margin-top: 10px;">Cancel</button>
+            <button class="close-btn" onclick="closeRulesModal()">✕</button>
+            <h3 class="modal-title">Channel Rules (#<span id="rules-channel-name"></span>)</h3>
+            <textarea id="rules-textarea" class="setting-input" rows="10"></textarea>
+            <button class="stealth-btn" onclick="saveRules()" style="width:100%; margin-top:10px;">Save Rules</button>
         </div>
     </div>
 
     <!-- Dev Menu -->
-    <div id="dev-menu" style="position: absolute; background-color: #111111; border: 1px solid #00FF00; padding: 10px; border-radius: 5px; z-index: 10000; display: none;">
-        <button class="mod-btn" id="dev-delete-btn">Delete Message</button>
-        <button class="mod-btn" id="dev-edit-btn">Edit Message</button>
-        <button class="mod-btn" id="dev-view-btn">View Data</button>
+    <div id="dev-menu" style="display:none; position:absolute; background:#111; border:1px solid #00FF00; padding:10px; z-index:9999; color:#00FF00; font-family:monospace;">
+        <button onclick="deleteMessage()" style="background:#00FF00; color:#000; border:none; padding:5px; margin-bottom:5px;">Delete Message</button>
+        <button onclick="editMessage()" style="background:#00FF00; color:#000; border:none; padding:5px; margin-bottom:5px;">Edit Message</button>
+        <button onclick="showRawData()" style="background:#00FF00; color:#000; border:none; padding:5px;">View Data</button>
     </div>
+
+    <!-- Emoji Picker Container -->
+    <div id="emoji-picker-container" style="position: absolute; bottom: 60px; left: 10px; z-index: 100;"></div>
+
+    <!-- Channel Creation Modal -->
+    <div id="channel-modal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeChannelModal()">✕</button>
+            <h3 class="modal-title">Create Channel</h3>
+            <input type="text" id="new-channel-name" class="setting-input" placeholder="Channel Name (e.g., gaming)">
+            <button class="stealth-btn" onclick="createChannel()" style="width:100%; margin-top:10px;">Create</button>
+        </div>
+    </div>
+
+    <!-- Logout Button -->
+    <button class="stealth-btn" id="logout-btn" style="position: absolute; bottom: 10px; left: 10px; z-index: 30;">Log Out</button>
 
     <script>
         // --- Firebase Configuration ---
@@ -873,269 +875,135 @@
             measurementId: "G-QS6SVMF7FE"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // --- Global Variables ---
+        // --- State Variables ---
         let currentUser = null;
         let currentChatId = "general";
         let peer = null;
         let myStream = null;
         let activeRoomId = null;
-        let unsubMessages = null;
+        let currentMsgId = null;
         let emojiPicker = null;
-        let window.currentMsgId = null;
+        let currentCall = null; // Track the active call object
 
-        // --- DOM Elements ---
-        const els = {
-            sidebar: document.getElementById('sidebar'),
-            channelsContainer: document.getElementById('channels-container'),
-            stealthLinkInput: document.getElementById('stealth-link-input'),
-            stealthActivateBtn: document.getElementById('stealth-activate-btn'),
-            chatArea: document.getElementById('chat-area'),
-            chatName: document.getElementById('current-chat-name'),
-            messagesContainer: document.getElementById('messages'),
-            msgInput: document.getElementById('msg-input'),
-            uploadBtn: document.getElementById('upload-btn'),
-            imageUpload: document.getElementById('image-upload'),
-            emojiTrigger: document.getElementById('emoji-trigger'),
-            emojiPickerContainer: document.getElementById('emoji-picker-container'),
-            settingsPanel: document.getElementById('settings-panel'),
-            userProfile: document.querySelector('.user-profile'),
-            settingsUsername: document.getElementById('settings-username'),
-            settingsAvatar: document.getElementById('settings-avatar'),
-            settingsColor: document.getElementById('settings-color'),
-            settingsGradientToggle: document.getElementById('settings-gradient-toggle'),
-            settingsBgUrl: document.getElementById('settings-bg-url'),
-            saveSettingsBtn: document.getElementById('save-settings-btn'),
-            sidebarAvatar: document.getElementById('sidebar-avatar'),
-            sidebarUsername: document.getElementById('sidebar-username'),
-            stealthLayer: document.getElementById('stealth-layer'),
-            stealthFrame: document.getElementById('stealth-frame'),
-            smokeOverlay: document.getElementById('smoke-overlay'),
-            blinkerAlert: document.getElementById('blinker-alert'),
-            vapeAlert: document.getElementById('vape-alert'),
-            cartAlert: document.getElementById('cart-alert'),
-            btnCall: document.getElementById('btn-call'),
-            btnBlinker: document.getElementById('btn-blinker'),
-            btnVape: document.getElementById('btn-vape'),
-            btnCart: document.getElementById('btn-cart'),
-            btnRules: document.getElementById('btn-rules'),
-            rulesModal: document.getElementById('rules-modal'),
-            rulesTextarea: document.getElementById('rules-textarea'),
-            saveRulesBtn: document.getElementById('save-rules-btn'),
-            closeRulesBtn: document.getElementById('close-rules-btn'),
-            modToolsPanel: document.getElementById('mod-tools-panel'),
-            deleteMsgBtn: document.getElementById('delete-msg-btn'),
-            editMsgBtn: document.getElementById('edit-msg-btn'),
-            viewDataBtn: document.getElementById('view-data-btn'),
-            callModal: document.getElementById('call-modal'),
-            myPeerId: document.getElementById('my-peer-id'),
-            roomIdInput: document.getElementById('room-id-input'),
-            createRoomBtn: document.getElementById('create-room-btn'),
-            activeRoomInfo: document.getElementById('active-room-info'),
-            closeCallModalBtn: document.getElementById('close-call-modal-btn'),
-            videoOverlay: document.getElementById('video-overlay'),
-            remoteVideo: document.getElementById('remote-video'),
-            localVideo: document.getElementById('local-video'),
-            muteBtn: document.getElementById('mute-btn'),
-            hangupBtn: document.getElementById('hangup-btn'),
-            inCallChat: document.getElementById('in-call-chat'),
-            inCallMessages: document.getElementById('in-call-messages'),
-            inCallInput: document.getElementById('in-call-input'),
-            channelModal: document.getElementById('channel-modal'),
-            newChannelName: document.getElementById('new-channel-name'),
-            createChannelBtn: document.getElementById('create-channel-btn'),
-            closeChannelModalBtn: document.getElementById('close-channel-modal-btn'),
-            devMenu: document.getElementById('dev-menu'),
-            devDeleteBtn: document.getElementById('dev-delete-btn'),
-            devEditBtn: document.getElementById('dev-edit-btn'),
-            devViewBtn: document.getElementById('dev-view-btn')
+        // Robust ICE Configuration
+        const iceConfig = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' }
+            ],
+            iceTransportPolicy: 'all', // Allow both direct and relayed connections
+            sdpSemantics: 'unified-plan' // More stable for modern browsers
         };
 
         // --- Initialization ---
-        document.addEventListener('DOMContentLoaded', () => {
-            initEmojiPicker();
-            setupEventListeners();
-            checkAuthState();
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                loadUserData();
+                renderFriends();
+                listenToMessages();
+                checkForAlerts();
+                initEmojiPicker();
+                setupDevMode();
+                updateSidebarProfile();
+                loadStealthUrl(); // Step 6: Load last used stealth URL
+            } else {
+                window.location.href = "index.html";
+            }
         });
 
-        function initEmojiPicker() {
-            emojiPicker = new EmojiButton({
-                theme: 'auto',
-                position: 'top-start'
-            });
-            
-            els.emojiTrigger.addEventListener('click', (e) => {
-                e.stopPropagation();
-                emojiPicker.togglePicker(els.emojiPickerContainer);
-            });
+        // --- User Data Handling ---
+        function loadUserData() {
+            db.collection("users").doc(currentUser.uid).onSnapshot(doc => {
+                const data = doc.data();
+                if (!data) return;
 
-            emojiPicker.on('emoji', selection => {
-                const pos = els.msgInput.selectionStart;
-                const end = els.msgInput.selectionEnd;
-                els.msgInput.value = els.msgInput.value.substring(0, pos) + selection.emoji + els.msgInput.value.substring(end);
-                els.msgInput.focus();
-                emojiPicker.hidePicker();
-            });
-            
-            document.addEventListener('click', (e) => {
-                if (!els.emojiPickerContainer.contains(e.target) && e.target !== els.emojiTrigger) {
-                    emojiPicker.hidePicker();
-                }
-            });
-        }
-
-        function setupEventListeners() {
-            // Stealth Mode
-            els.stealthActivateBtn.addEventListener('click', activateStealth);
-            els.stealthLinkInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') activateStealth();
-            });
-            document.addEventListener('keydown', (e) => {
-                if (e.shiftKey && e.key === 'CapsLock') {
-                    e.preventDefault();
-                    toggleStealthMode();
-                }
-                if (e.shiftKey && e.key === 'Enter') {
-                    e.preventDefault();
-                    toggleDevMenu(e.clientX, e.clientY);
-                }
-                if (e.shiftKey && e.key === 'm') {
-                    e.preventDefault();
-                    toggleModTools();
-                }
-            });
-
-            // Chat Actions
-            els.btnCall.addEventListener('click', openCallModal);
-            els.btnBlinker.addEventListener('click', () => triggerAlert('blinker'));
-            els.btnVape.addEventListener('click', () => triggerAlert('vape'));
-            els.btnCart.addEventListener('click', () => triggerAlert('cart'));
-            els.btnRules.addEventListener('click', openRulesModal);
-
-            // Input Handling
-            els.msgInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                }
-            });
-
-            els.uploadBtn.addEventListener('click', () => els.imageUpload.click());
-            els.imageUpload.addEventListener('change', handleImageUpload);
-
-            // Mod Tools
-            els.deleteMsgBtn.addEventListener('click', deleteMessage);
-            els.editMsgBtn.addEventListener('click', editMessage);
-            els.viewDataBtn.addEventListener('click', showRawData);
-
-            // Call Modal
-            els.createRoomBtn.addEventListener('click', createOrJoinRoom);
-            els.closeCallModalBtn.addEventListener('click', () => els.callModal.style.display = 'none');
-
-            // Video Controls
-            els.muteBtn.addEventListener('click', toggleMute);
-            els.hangupBtn.addEventListener('click', endCall);
-
-            // Rules
-            els.saveRulesBtn.addEventListener('click', saveRules);
-            els.closeRulesBtn.addEventListener('click', () => els.rulesModal.style.display = 'none');
-
-            // Channel Creation
-            els.createChannelBtn.addEventListener('click', createChannel);
-            els.closeChannelModalBtn.addEventListener('click', () => els.channelModal.style.display = 'none');
-
-            // Dev Menu
-            els.devDeleteBtn.addEventListener('click', deleteMessage);
-            els.devEditBtn.addEventListener('click', editMessage);
-            els.devViewBtn.addEventListener('click', showRawData);
-        }
-
-        // --- Authentication & User Data ---
-        function checkAuthState() {
-            auth.onAuthStateChanged(async (user) => {
-                if (user) {
-                    currentUser = user;
-                    await loadUserData();
-                    renderChannels();
-                    listenToMessages(currentChatId);
-                    checkForAlerts();
-                    setupDevMode();
+                document.getElementById("sidebar-username").textContent = data.username || "User";
+                document.getElementById("sidebar-avatar").style.backgroundImage = `url(${data.avatar || ''})`;
+                
+                // Apply settings
+                const usernameEl = document.getElementById("sidebar-username");
+                if (data.gradient && data.gradient === true) {
+                    usernameEl.classList.add("gradient-name");
                 } else {
-                    window.location.href = 'index.html';
+                    usernameEl.classList.remove("gradient-name");
+                }
+                
+                if (data.color) {
+                    usernameEl.style.color = data.color;
+                }
+
+                // Set chat background if set in profile
+                if (data.chatBackground) {
+                    document.getElementById("chat-area").style.backgroundImage = `url(${data.chatBackground})`;
+                } else {
+                    document.getElementById("chat-area").style.backgroundImage = "none";
                 }
             });
         }
 
-        async function loadUserData() {
-            const docRef = db.collection('users').doc(currentUser.uid);
-            docRef.onSnapshot((doc) => {
-                if (doc.exists) {
-                    const data = doc.data();
-                    updateUserUI(data);
-                }
+        function updateSidebarProfile() {
+            if(!currentUser) return;
+            db.collection("users").doc(currentUser.uid).get().then(doc => {
+                const data = doc.data();
+                document.getElementById("setting-username").value = data?.username || "";
+                document.getElementById("setting-avatar").value = data?.avatar || "";
+                document.getElementById("setting-color").value = data?.color || "#ffffff";
+                document.getElementById("setting-gradient").checked = data?.gradient || false;
             });
         }
 
-        function updateUserUI(data) {
-            els.sidebarUsername.textContent = data.username || 'User';
-            els.sidebarUsername.className = 'username-display ' + (data.gradient ? 'gradient-name' : '');
-            els.sidebarUsername.style.color = data.nameColor || '#ffffff';
-            els.sidebarAvatar.style.backgroundImage = `url(${data.avatar || 'https://via.placeholder.com/32'})`;
-            
-            if (data.chatBackground) {
-                els.chatArea.style.backgroundImage = `url(${data.chatBackground})`;
-                els.chatArea.style.backgroundSize = 'cover';
-                els.chatArea.style.backgroundPosition = 'center';
-            } else {
-                els.chatArea.style.backgroundImage = 'none';
-            }
-
-            // Populate settings fields
-            els.settingsUsername.value = data.username || '';
-            els.settingsAvatar.value = data.avatar || '';
-            els.settingsColor.value = data.nameColor || '#ffffff';
-            els.settingsGradientToggle.checked = !!data.gradient;
-            els.settingsBgUrl.value = data.chatBackground || '';
-        }
-
-        function toggleSettings(show) {
-            if (show === undefined) {
-                show = els.settingsPanel.style.display === 'block';
-            }
-            els.settingsPanel.style.display = show ? 'block' : 'none';
-        }
-
-        async function saveSettings() {
-            const updates = {
-                username: els.settingsUsername.value,
-                avatar: els.settingsAvatar.value,
-                nameColor: els.settingsColor.value,
-                gradient: els.settingsGradientToggle.checked,
-                chatBackground: els.settingsBgUrl.value
-            };
-            
-            try {
-                await db.collection('users').doc(currentUser.uid).update(updates);
-                toggleSettings(false);
-            } catch (error) {
-                console.error("Error saving settings: ", error);
-                alert("Failed to save settings.");
+        // --- Step 6: Stealth URL Persistence ---
+        function loadStealthUrl() {
+            const savedUrl = localStorage.getItem('lastStealthUrl');
+            if (savedUrl) {
+                document.getElementById("stealth-link-input").value = savedUrl;
             }
         }
 
-        function updateProfileBackground(url) {
-            db.collection('users').doc(currentUser.uid).update({
-                chatBackground: url
-            }).catch(err => console.error("Error updating background:", err));
+        // Save URL on every keystroke
+        document.getElementById("stealth-link-input").addEventListener("input", (e) => {
+            localStorage.setItem('lastStealthUrl', e.target.value);
+        });
+
+        // --- Settings Logic ---
+        function toggleSettings() {
+            const panel = document.getElementById("settings-panel");
+            panel.style.display = panel.style.display === "block" ? "none" : "block";
         }
+
+        function saveSettings() {
+            const username = document.getElementById("setting-username").value;
+            const avatar = document.getElementById("setting-avatar").value;
+            const color = document.getElementById("setting-color").value;
+            const gradient = document.getElementById("setting-gradient").checked;
+
+            db.collection("users").doc(currentUser.uid).update({
+                username: username,
+                avatar: avatar,
+                color: color,
+                gradient: gradient
+            }).then(() => {
+                toggleSettings();
+            });
+        }
+
+        // --- Lobby / Background Setup (Simple Implementation) ---
+        // Assuming there's a way to set background via settings or a lobby screen not fully shown here
+        // If you have a specific lobby input, bind it to 'chatBackground' in user profile
 
         // --- Messaging System ---
         function sendMessage() {
-            const text = els.msgInput.value.trim();
+            const input = document.getElementById("msg-input");
+            const text = input.value.trim();
+            
             if (!text) return;
 
             const messageData = {
@@ -1145,428 +1013,617 @@
                 chatId: currentChatId
             };
 
-            db.collection('chats').doc(currentChatId).collection('messages').add(messageData)
-                .then(() => {
-                    els.msgInput.value = '';
-                })
-                .catch(err => console.error("Error sending message: ", err));
+            db.collection("chats").doc(currentChatId).collection("messages").add(messageData);
+            input.value = "";
         }
 
-        function listenToMessages(chatId) {
-            // Unsubscribe from previous listener if exists
-            if (unsubMessages) {
-                unsubMessages();
-            }
+        function listenToMessages() {
+            db.collection("chats").doc(currentChatId).collection("messages")
+                .orderBy("timestamp", "asc")
+                .onSnapshot(snapshot => {
+                    const container = document.getElementById("messages");
+                    container.innerHTML = ""; // Clear and re-render (simple approach)
+                    
+                    snapshot.forEach(doc => {
+                        const msg = doc.data();
+                        const div = document.createElement("div");
+                        div.className = `message ${msg.senderId === currentUser.uid ? 'self' : 'other'}`;
+                        div.dataset.id = doc.id;
 
-            unsubMessages = db.collection('chats').doc(chatId).collection('messages')
-                .orderBy('timestamp', 'asc')
-                .onSnapshot((snapshot) => {
-                    snapshot.docChanges().forEach((change) => {
-                        if (change.type === "added") {
-                            renderMessage(change.doc.data(), change.doc.id);
+                        // Get username/color/mod status for other users
+                        if (msg.senderId !== currentUser.uid) {
+                            db.collection("users").doc(msg.senderId).get().then(userDoc => {
+                                const userData = userDoc.data();
+                                const author = document.createElement("div");
+                                author.className = "message-author";
+                                
+                                // Add Crown Icon if Mod
+                                if (userData?.isModerator) {
+                                    const crown = document.createElement("span");
+                                    crown.className = "mod-icon";
+                                    crown.textContent = "👑";
+                                    author.appendChild(crown);
+                                }
+
+                                author.textContent = userData?.username || "Unknown";
+                                if(userData?.gradient) author.classList.add("gradient-name");
+                                if(userData?.color) author.style.color = userData.color;
+                                div.prepend(author);
+                            });
+                        } else {
+                            const author = document.createElement("div");
+                            author.className = "message-author";
+                            
+                            // Check if self is mod
+                            if (currentUser?.isModerator) {
+                                const crown = document.createElement("span");
+                                crown.className = "mod-icon";
+                                crown.textContent = "👑";
+                                author.appendChild(crown);
+                            }
+                            
+                            author.textContent = "You";
+                            div.prepend(author);
+                        }
+
+                        // Handle Links
+                        const textDiv = document.createElement("div");
+                        textDiv.className = "message-text";
+                        
+                        if (msg.text.startsWith("http")) {
+                            // Simple Link Embed
+                            const embed = document.createElement("div");
+                            embed.style.padding = "10px";
+                            embed.style.borderLeft = "4px solid #5865F2";
+                            embed.style.background = "#2B2D31";
+                            embed.innerHTML = `<strong>Link:</strong> <a href="${msg.text}" target="_blank">${msg.text}</a>`;
+                            textDiv.appendChild(embed);
+                        } else {
+                            textDiv.textContent = msg.text;
+                        }
+                        div.appendChild(textDiv);
+
+                        const time = document.createElement("div");
+                        time.className = "message-time";
+                        const date = msg.timestamp ? new Date(msg.timestamp.toMillis()) : new Date();
+                        time.textContent = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        div.appendChild(time);
+
+                        container.appendChild(div);
+
+                        // IF IN CALL, ADD TO IN-CALL CHAT TOO
+                        if (document.getElementById("video-overlay").style.display === "flex") {
+                            const inCallMsg = document.createElement("div");
+                            inCallMsg.className = "in-call-msg";
+                            
+                            // Fetch username for display in in-call chat
+                            let displayName = msg.senderId === currentUser.uid ? 'You' : 'User';
+                            db.collection("users").doc(msg.senderId).get().then(d => {
+                                if(d.exists) displayName = d.data()?.username || 'User';
+                                inCallMsg.innerHTML = `<strong>${displayName}:</strong> ${msg.text}`;
+                                inCallMessages.appendChild(inCallMsg);
+                                inCallMessages.scrollTop = inCallMessages.scrollHeight;
+                            });
                         }
                     });
-                    scrollToBottom();
+                    container.scrollTop = container.scrollHeight;
                 });
         }
 
-        function renderMessage(data, id) {
-            const isSelf = data.senderId === currentUser.uid;
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `message ${isSelf ? 'self' : 'other'}`;
-            msgDiv.dataset.id = id;
+        // --- Friends & Social ---
+        function addFriend() {
+            const email = prompt("Enter friend's email or username prefix:");
+            if (!email) return;
 
-            const authorDiv = document.createElement('div');
-            authorDiv.className = 'message-author';
-            authorDiv.textContent = data.senderUsername || 'Unknown';
-            authorDiv.style.color = data.senderNameColor || '#ffffff';
-            if (data.senderGradient) {
-                authorDiv.classList.add('gradient-name');
-            }
+            db.collection("users").where("email", "==", email).get().then(querySnapshot => {
+                if (querySnapshot.empty) {
+                    // Try username prefix
+                    db.collection("users").where("username", ">=", email).limit(1).get().then(uSnap => {
+                         if(uSnap.empty) alert("User not found");
+                         else {
+                             const friendId = uSnap.docs[0].id;
+                             addFriendRelation(friendId);
+                         }
+                    });
+                } else {
+                    const friendId = querySnapshot.docs[0].id;
+                    addFriendRelation(friendId);
+                }
+            });
+        }
 
-            const textDiv = document.createElement('div');
-            textDiv.className = 'message-text';
+        function addFriendRelation(friendId) {
+            if (friendId === currentUser.uid) return;
             
-            // Handle Links
-            if (data.text.startsWith('http')) {
-                const embedDiv = document.createElement('div');
-                embedDiv.className = 'link-embed';
-                embedDiv.innerHTML = `<div class="link-embed-title">${data.text}</div>`;
-                embedDiv.onclick = () => window.open(data.text, '_blank');
-                textDiv.appendChild(embedDiv);
-            } else {
-                textDiv.textContent = data.text;
-            }
-
-            const timeDiv = document.createElement('div');
-            timeDiv.className = 'message-time';
-            const date = data.timestamp ? new Date(data.timestamp.seconds * 1000) : new Date();
-            timeDiv.textContent = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-            msgDiv.appendChild(authorDiv);
-            msgDiv.appendChild(textDiv);
-            msgDiv.appendChild(timeDiv);
-
-            els.messagesContainer.appendChild(msgDiv);
+            db.collection("users").doc(currentUser.uid).update({
+                friends: firebase.firestore.FieldValue.arrayUnion(friendId)
+            });
         }
 
-        function scrollToBottom() {
-            els.messagesContainer.scrollTop = els.messagesContainer.scrollHeight;
+        function renderFriends() {
+            if (!currentUser) return;
+            db.collection("users").doc(currentUser.uid).get().then(doc => {
+                const data = doc.data();
+                const friends = data?.friends || [];
+                const container = document.getElementById("channels-container"); // Reusing channels container for demo, or create specific one
+                container.innerHTML = ""; 
+
+                // Add Default General Channel
+                const generalItem = document.createElement("div");
+                generalItem.className = "channel-item active";
+                generalItem.innerHTML = `<span class="channel-hash">#</span> general`;
+                generalItem.onclick = () => switchChat("general");
+                container.appendChild(generalItem);
+
+                friends.forEach(fid => {
+                    db.collection("users").doc(fid).get().then(userDoc => {
+                        const uData = userDoc.data();
+                        const item = document.createElement("div");
+                        item.className = "channel-item";
+                        item.innerHTML = `<div class="avatar" style="width:24px;height:24px;margin-right:5px;background-image:url('${uData?.avatar||''}')"></div> ${uData?.username || "User"}`;
+                        item.onclick = () => switchChat(`dm-${fid}`);
+                        container.appendChild(item);
+                    });
+                });
+            });
         }
 
-        // --- Fix: Switch Chat Logic (Step 1) ---
         function switchChat(chatId) {
             currentChatId = chatId;
-            els.chatName.textContent = "#" + chatId;
-            els.messagesContainer.innerHTML = "";
-            els.msgInput.placeholder = "Message #" + chatId;
-            listenToMessages(chatId);
-            scrollToBottom();
+            document.getElementById("current-chat-name").textContent = chatId.replace("dm-", "");
+            document.getElementById("msg-input").placeholder = `Message #${chatId.replace("dm-", "")}`;
+            
+            // Update active state in sidebar
+            document.querySelectorAll(".channel-item").forEach(el => el.classList.remove("active"));
+            // Simple highlight logic would go here based on chatId match
         }
 
-        // --- Channels System ---
-        function renderChannels() {
-            els.channelsContainer.innerHTML = '';
-            
-            // Default General Channel
-            addChannelToList('general');
-
-            // Fetch other channels if implemented in backend
-            // For now, assuming only general exists unless added via modal
-        }
-
-        function addChannelToList(name) {
-            const item = document.createElement('div');
-            item.className = 'channel-item';
-            if (name === currentChatId) item.classList.add('active');
-            
-            const hash = document.createElement('span');
-            hash.className = 'channel-hash';
-            hash.textContent = '#';
-            
-            const nameSpan = document.createElement('span');
-            nameSpan.textContent = name;
-            
-            item.appendChild(hash);
-            item.appendChild(nameSpan);
-            
-            item.addEventListener('click', () => {
-                switchChat(name);
-                // Update active state
-                document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
-                item.classList.add('active');
-            });
-
-            els.channelsContainer.appendChild(item);
-        }
-
-        function openChannelModal() {
-            els.channelModal.style.display = 'flex';
-            els.newChannelName.value = '';
-        }
-
-        async function createChannel() {
-            const name = els.newChannelName.value.trim();
-            if (!name) return;
-
-            try {
-                await db.collection('channels').doc(name).set({
-                    name: name,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                addChannelToList(name);
-                els.channelModal.style.display = 'none';
-            } catch (error) {
-                console.error("Error creating channel: ", error);
-                alert("Could not create channel.");
-            }
-        }
-
-        // --- Alerts System ---
+        // --- Alert System ---
         function triggerAlert(type) {
-            const alertData = {
+            db.collection("alerts").add({
                 type: type,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            
-            db.collection('alerts').add(alertData);
+            });
         }
 
         function checkForAlerts() {
-            db.collection('alerts').orderBy('timestamp', 'desc').limit(1).onSnapshot((snapshot) => {
+            db.collection("alerts").orderBy("timestamp", "desc").limit(1).onSnapshot(snapshot => {
                 if (!snapshot.empty) {
-                    const latestAlert = snapshot.docs[0].data();
+                    const alert = snapshot.docs[0].data();
                     const now = new Date();
-                    const alertTime = latestAlert.timestamp ? new Date(latestAlert.timestamp.seconds * 1000) : new Date(0);
+                    const alertTime = alert.timestamp ? new Date(alert.timestamp.toMillis()) : now;
                     
-                    if ((now - alertTime) < 5000) { // 5 seconds
-                        showAlert(latestAlert.type);
+                    // Only show if within last 5 seconds
+                    if ((now - alertTime) < 5000) {
+                        showSpecificAlert(alert.type);
                     }
                 }
             });
         }
 
-        function showAlert(type) {
-            let alertEl;
-            if (type === 'blinker') alertEl = els.blinkerAlert;
-            else if (type === 'vape') alertEl = els.vapeAlert;
-            else if (type === 'cart') alertEl = els.cartAlert;
-            else return;
+        function showSpecificAlert(type) {
+            // Hide others first
+            document.querySelectorAll('.alert-overlay').forEach(el => el.style.display = 'none');
+            
+            let overlayId = '';
+            if (type === 'blinker') overlayId = 'blinker-alert';
+            else if (type === 'vape') overlayId = 'vape-alert';
+            else if (type === 'cart') overlayId = 'cart-alert';
 
-            alertEl.style.display = 'flex';
-            setTimeout(() => {
-                alertEl.style.display = 'none';
-            }, 3000);
+            if (overlayId) {
+                const overlay = document.getElementById(overlayId);
+                overlay.style.display = 'flex';
+                
+                // Trigger smoke
+                triggerSmoke();
+
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 3000);
+            }
         }
+
+        // --- Smoke Effect ---
+        function triggerSmoke() {
+            const smoke = document.getElementById("smoke-overlay");
+            smoke.classList.remove("smoke-active");
+            void smoke.offsetWidth; // Trigger reflow
+            smoke.classList.add("smoke-active");
+        }
+
+        // --- Event Listeners for Buttons ---
+        document.getElementById("btn-blinker").onclick = () => triggerAlert('blinker');
+        document.getElementById("btn-vape").onclick = () => triggerAlert('vape');
+        document.getElementById("btn-cart").onclick = () => triggerAlert('cart');
 
         // --- Stealth Mode ---
-        function activateStealth() {
-            const url = els.stealthLinkInput.value.trim();
-            if (url) {
-                els.stealthFrame.src = url;
-            } else {
-                els.stealthFrame.src = "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1";
-            }
-            els.stealthLayer.style.display = 'flex';
-        }
-
-        function toggleStealthMode() {
-            const isVisible = els.stealthLayer.style.display === 'flex';
-            if (isVisible) {
-                els.stealthLayer.style.display = 'none';
-                // Reload iframe to stop video
-                els.stealthFrame.src = els.stealthFrame.src;
-            } else {
-                activateStealth();
-            }
-        }
-
-        // --- Emoji Picker Integration ---
-        // Already handled in initEmojiPicker
-
-        // --- Image Upload ---
-        function handleImageUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const imageUrl = event.target.result;
-                const messageData = {
-                    senderId: currentUser.uid,
-                    text: imageUrl,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    chatId: currentChatId,
-                    isImage: true
-                };
-
-                db.collection('chats').doc(currentChatId).collection('messages').add(messageData)
-                    .then(() => {
-                        els.imageUpload.value = ''; // Reset input
-                    });
-            };
-            reader.readAsDataURL(file);
-        }
-
-        // --- Mod Tools ---
-        function toggleModTools() {
-            const isHidden = els.modToolsPanel.style.display === 'none' || els.modToolsPanel.style.display === '';
-            els.modToolsPanel.style.display = isHidden ? 'block' : 'none';
-        }
-
-        function deleteMessage() {
-            if (!window.currentMsgId) {
-                alert("No message selected. Click on a message first.");
-                return;
-            }
-            db.collection('chats').doc(currentChatId).collection('messages').doc(window.currentMsgId).delete()
-                .then(() => {
-                    alert("Message deleted.");
-                    els.modToolsPanel.style.display = 'none';
-                })
-                .catch(err => console.error("Error deleting message: ", err));
-        }
-
-        function editMessage() {
-            if (!window.currentMsgId) {
-                alert("No message selected. Click on a message first.");
-                return;
-            }
-            const newText = prompt("Enter new message text:");
-            if (newText !== null) {
-                db.collection('chats').doc(currentChatId).collection('messages').doc(window.currentMsgId).update({
-                    text: newText
-                })
-                .then(() => {
-                    alert("Message edited.");
-                    els.modToolsPanel.style.display = 'none';
-                })
-                .catch(err => console.error("Error editing message: ", err));
-            }
-        }
-
-        function showRawData() {
-            if (!window.currentMsgId) {
-                alert("No message selected.");
-                return;
-            }
-            db.collection('chats').doc(currentChatId).collection('messages').doc(window.currentMsgId).get()
-                .then((doc) => {
-                    alert(JSON.stringify(doc.data(), null, 2));
-                });
-        }
-
-        // --- Dev Menu ---
-        function setupDevMode() {
-            // Highlight message on click
-            document.addEventListener('click', (e) => {
-                const msgElement = e.target.closest('.message');
-                if (msgElement) {
-                    window.currentMsgId = msgElement.dataset.id;
-                    // Optional: Visual feedback like border
-                    document.querySelectorAll('.message').forEach(m => m.style.border = 'none');
-                    msgElement.style.border = '2px solid #5865F2';
-                } else {
-                    // Clear selection if clicking outside
-                    // document.querySelectorAll('.message').forEach(m => m.style.border = 'none');
-                    // window.currentMsgId = null;
+        document.addEventListener("keydown", e => {
+            if (e.shiftKey && e.code === "CapsLock") {
+                const stealth = document.getElementById("stealth-layer");
+                const isVisible = stealth.style.display === "flex";
+                stealth.style.display = isVisible ? "none" : "flex";
+                if (!isVisible) {
+                    // Reload iframe to ensure video starts fresh
+                    const frame = document.getElementById("stealth-frame");
+                    frame.src = frame.src; 
                 }
-            });
-        }
-
-        function toggleDevMenu(x, y) {
-            if (els.devMenu.style.display === 'block') {
-                els.devMenu.style.display = 'none';
-            } else {
-                els.devMenu.style.display = 'block';
-                els.devMenu.style.left = `${x}px`;
-                els.devMenu.style.top = `${y}px`;
             }
-        }
+        });
+
+        document.getElementById("stealth-activate-btn").onclick = () => {
+            const url = document.getElementById("stealth-link-input").value;
+            if (url) {
+                document.getElementById("stealth-frame").src = url;
+                document.getElementById("stealth-layer").style.display = "flex";
+            }
+        };
 
         // --- Video Calls (PeerJS) ---
-        function openCallModal() {
-            els.callModal.style.display = 'flex';
-            if (!peer) {
-                initPeer();
-            }
-        }
-
         function initPeer() {
-            peer = new Peer();
+            if (peer) return;
+            peer = new Peer(undefined, iceConfig);
             
-            peer.on('open', (id) => {
-                els.myPeerId.textContent = id;
+            peer.on('open', id => {
+                document.getElementById("my-peer-id").textContent = "Your ID: " + id;
             });
 
-            peer.on('call', (call) => {
-                navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-                    .then((stream) => {
+            peer.on('call', call => {
+                updateStatus('connecting');
+                navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+                    .then(stream => {
                         myStream = stream;
-                        els.localVideo.srcObject = stream;
+                        document.getElementById("local-video").srcObject = stream;
                         call.answer(stream);
-                        
-                        call.on('stream', (remoteStream) => {
-                            setupVideoCall(remoteStream);
+                        call.on('stream', remoteStream => {
+                            document.getElementById("remote-video").srcObject = remoteStream;
+                            document.getElementById("video-overlay").style.display = "flex";
+                            updateStatus('connected');
                         });
+                        call.on('close', endCall);
                     })
-                    .catch((err) => {
-                        console.error('Failed to get local stream', err);
+                    .catch(err => {
+                        console.error("Failed to get local stream", err);
+                        updateStatus('failed');
+                        alert("Could not start camera/mic.");
                     });
             });
+            
+            peer.on('disconnected', () => {
+                console.log("Disconnected from PeerJS server");
+                updateStatus('failed');
+            });
+            
+            peer.on('error', (err) => {
+                console.error("PeerJS Error:", err);
+                updateStatus('failed');
+                alert("Connection error: " + err.type);
+            });
         }
 
-        function createOrJoinRoom() {
-            const roomId = els.roomIdInput.value.trim() || Math.random().toString(36).substring(2, 8);
-            activeRoomId = roomId;
-            els.activeRoomInfo.textContent = `Room ID: ${roomId}`;
+        function updateStatus(status) {
+            const dot = document.getElementById("status-dot");
+            const text = document.getElementById("status-text");
+            const container = document.getElementById("connection-status");
             
-            if (els.roomIdInput.value.trim()) {
-                connectCall(els.roomIdInput.value.trim());
-            } else {
-                // Just show the ID for them to share
-                alert(`Your Room ID is: ${roomId}. Share this with your friend!`);
+            container.style.display = "block";
+            dot.className = "status-indicator"; // Reset classes
+            
+            if (status === 'connecting') {
+                dot.classList.add("status-connecting");
+                text.textContent = "Connecting...";
+            } else if (status === 'connected') {
+                dot.classList.add("status-connected");
+                text.textContent = "Connected";
+            } else if (status === 'failed') {
+                dot.classList.add("status-failed");
+                text.textContent = "Failed";
             }
         }
 
-        function connectCall(targetId) {
-            if (!peer) return;
-            
-            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-                .then((stream) => {
-                    myStream = stream;
-                    els.localVideo.srcObject = stream;
-                    
-                    const call = peer.call(targetId, stream);
-                    if (call) {
-                        call.on('stream', (remoteStream) => {
-                            setupVideoCall(remoteStream);
-                        });
-                        call.on('close', () => {
-                            endCall();
-                        });
-                    }
-                })
-                .catch((err) => {
-                    console.error('Failed to get local stream', err);
-                });
-        }
+        document.getElementById("btn-call").onclick = () => {
+            initPeer();
+            document.getElementById("call-modal").style.display = "flex";
+        };
 
-        function setupVideoCall(remoteStream) {
-            els.remoteVideo.srcObject = remoteStream;
-            els.videoOverlay.style.display = 'flex';
-            els.callModal.style.display = 'none';
+        function createOrJoinRoom() {
+            const roomId = document.getElementById("room-id-input").value || Math.random().toString(36).substr(2, 9);
+            document.getElementById("room-info").textContent = "Connecting to room: " + roomId;
+            updateStatus('connecting');
+            
+            // We assume the user wants to call someone who has this room ID
+            // Note: This is a simplified connection. Usually you'd map Room IDs to Peer IDs in Firestore
+            // Here we just try to call the Peer directly if they are online and using that ID
+            
+            if(peer) {
+                navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+                    .then(stream => {
+                        myStream = stream;
+                        document.getElementById("local-video").srcObject = stream;
+                        
+                        // Wait a brief moment for ICE gathering to start
+                        setTimeout(() => {
+                            const call = peer.call(roomId, stream);
+                            currentCall = call; // Store reference
+                            
+                            call.on('stream', remoteStream => {
+                                document.getElementById("remote-video").srcObject = remoteStream;
+                                document.getElementById("video-overlay").style.display = "flex";
+                                updateStatus('connected');
+                            });
+                            
+                            call.on('close', () => {
+                                endCall();
+                            });
+                            
+                            call.on('error', (err) => {
+                                console.error("Call Error:", err);
+                                updateStatus('failed');
+                                alert("Call failed: " + err.type);
+                            });
+                            
+                            // Listen for ICE connection state changes
+                            call.on('iceconnectionstatechange', () => {
+                                if (call.peerConnection.iceConnectionState === 'connected' || call.peerConnection.iceConnectionState === 'completed') {
+                                    updateStatus('connected');
+                                } else if (call.peerConnection.iceConnectionState === 'failed') {
+                                    updateStatus('failed');
+                                }
+                            });
+                        }, 500); // Small delay to allow ICE candidates to gather
+                    })
+                    .catch(err => {
+                        console.error("Failed to get local stream", err);
+                        updateStatus('failed');
+                        alert("Could not start camera/mic.");
+                    });
+            }
         }
 
         function endCall() {
+            document.getElementById("video-overlay").style.display = "none";
             if (myStream) {
                 myStream.getTracks().forEach(track => track.stop());
                 myStream = null;
+            }
+            if (currentCall) {
+                currentCall.close();
+                currentCall = null;
             }
             if (peer) {
                 peer.disconnect();
                 peer = null;
             }
-            els.videoOverlay.style.display = 'none';
-            els.remoteVideo.srcObject = null;
-            els.localVideo.srcObject = null;
-            els.callModal.style.display = 'none';
-            els.roomIdInput.value = '';
-            activeRoomId = null;
+            document.getElementById("call-modal").style.display = "none";
+            updateStatus('failed'); // Reset status
+            setTimeout(() => {
+                document.getElementById("connection-status").style.display = "none";
+            }, 2000);
         }
 
         function toggleMute() {
             if (myStream) {
                 const audioTrack = myStream.getAudioTracks()[0];
-                if (audioTrack) {
-                    audioTrack.enabled = !audioTrack.enabled;
-                    els.muteBtn.textContent = audioTrack.enabled ? 'Mute' : 'Unmute';
-                    els.muteBtn.style.backgroundColor = audioTrack.enabled ? '#40444B' : '#3BA55C';
-                }
+                audioTrack.enabled = !audioTrack.enabled;
+                document.querySelector(".btn-mute").textContent = audioTrack.enabled ? "🎤 Mute" : "🔊 Unmute";
             }
         }
 
+        function closeCallModal() {
+            document.getElementById("call-modal").style.display = "none";
+        }
+
+        // --- In-Call Chat Integration ---
+        const inCallInput = document.getElementById("in-call-input");
+        const inCallMessages = document.getElementById("in-call-messages");
+
+        inCallInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                const text = inCallInput.value.trim();
+                if (text) {
+                    // Send to main chat
+                    db.collection("chats").doc(currentChatId).collection("messages").add({
+                        senderId: currentUser.uid,
+                        text: text,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        chatId: currentChatId
+                    });
+                    inCallInput.value = "";
+                }
+            }
+        });
+
         // --- Rules System ---
         function openRulesModal() {
-            els.rulesModal.style.display = 'flex';
-            db.collection('chats').doc(currentChatId).get().then((doc) => {
+            document.getElementById("rules-modal").style.display = "flex";
+            document.getElementById("rules-channel-name").textContent = currentChatId.replace("dm-", "");
+            
+            // Load existing rules
+            db.collection("chats").doc(currentChatId).get().then(doc => {
                 if (doc.exists) {
-                    els.rulesTextarea.value = doc.data().rules || "1. Be respectful.\n2. No spam.\n3. Have fun.";
+                    document.getElementById("rules-textarea").value = doc.data().rules || "No rules set.";
                 } else {
-                    els.rulesTextarea.value = "1. Be respectful.\n2. No spam.\n3. Have fun.";
+                    // Default rules if none exist
+                    const defaultRules = "1. Be respectful.\n2. No spamming.\n3. Keep it clean.";
+                    document.getElementById("rules-textarea").value = defaultRules;
                 }
             });
         }
 
         function saveRules() {
-            const rules = els.rulesTextarea.value;
-            db.collection('chats').doc(currentChatId).set({
-                rules: rules
-            }, { merge: true })
-            .then(() => {
-                els.rulesModal.style.display = 'none';
+            const rules = document.getElementById("rules-textarea").value;
+            db.collection("chats").doc(currentChatId).set({ rules }, { merge: true });
+            closeRulesModal();
+        }
+
+        function closeRulesModal() {
+            document.getElementById("rules-modal").style.display = "none";
+        }
+
+        document.getElementById("btn-rules").onclick = openRulesModal;
+
+        // --- Mod Tools ---
+        function toggleModTools() {
+            const panel = document.getElementById("mod-tools-panel");
+            panel.style.display = panel.style.display === "block" ? "none" : "block";
+        }
+
+        // FIXED: Add Moderator Logic
+        async function addModerator() {
+            const uid = prompt("Enter User ID to make Moderator:");
+            if (!uid) return;
+
+            try {
+                const userRef = db.collection("users").doc(uid);
+                const doc = await userRef.get();
+
+                if (doc.exists) {
+                    await userRef.update({
+                        isModerator: true
+                    });
+                    alert(`${doc.data().username || uid} is now a moderator! 👑`);
+                } else {
+                    alert("User ID not found.");
+                }
+            } catch (error) {
+                console.error("Error adding moderator:", error);
+                alert("An error occurred while updating the user.");
+            }
+        }
+
+        function kickUser() {
+            const uid = prompt("Enter User ID to Kick:");
+            if (uid) {
+                // Simple kick: remove from friends or ban from chat
+                // For now, just log it
+                alert(`Kicked user ${uid}`);
+            }
+        }
+
+        function banUser() {
+            const uid = prompt("Enter User ID to Ban:");
+            if (uid) {
+                db.collection("users").doc(uid).update({
+                    banned: true
+                });
+                alert(`Banned user ${uid}`);
+            }
+        }
+
+        document.getElementById("btn-mod").onclick = toggleModTools;
+
+        // --- Emoji Picker ---
+        function initEmojiPicker() {
+            const pickerButton = document.getElementById("emoji-trigger");
+            const container = document.getElementById("emoji-picker-container");
+            
+            pickerButton.onclick = () => {
+                if (!emojiPicker) {
+                    emojiPicker = new EmojiButton({
+                        theme: 'auto',
+                        position: 'top-start'
+                    });
+                    emojiPicker.init(container);
+                }
+                
+                emojiPicker.togglePicker(pickerButton);
+                
+                emojiPicker.on('emoji', selection => {
+                    const input = document.getElementById("msg-input");
+                    input.value += selection.emoji;
+                    input.focus();
+                });
+            };
+        }
+
+        // --- Dev Mode ---
+        function setupDevMode() {
+            document.addEventListener("keydown", e => {
+                if (e.shiftKey && e.key === "Enter") {
+                    const menu = document.getElementById("dev-menu");
+                    menu.style.display = "block";
+                    menu.style.left = `${e.clientX}px`;
+                    menu.style.top = `${e.clientY}px`;
+                }
+            });
+
+            document.addEventListener("click", e => {
+                const msg = e.target.closest(".message");
+                if (msg) {
+                    currentMsgId = msg.dataset.id;
+                }
             });
         }
+
+        function deleteMessage() {
+            if (currentMsgId) {
+                db.collection("chats").doc(currentChatId).collection("messages").doc(currentMsgId).delete();
+                alert("Message deleted.");
+            }
+        }
+
+        function editMessage() {
+            if (currentMsgId) {
+                const newText = prompt("Enter new message text:");
+                if (newText !== null) {
+                    db.collection("chats").doc(currentChatId).collection("messages").doc(currentMsgId).update({
+                        text: newText
+                    });
+                }
+            }
+        }
+
+        function showRawData() {
+            if (currentMsgId) {
+                db.collection("chats").doc(currentChatId).collection("messages").doc(currentMsgId).get().then(doc => {
+                    alert(JSON.stringify(doc.data(), null, 2));
+                });
+            }
+        }
+
+        // --- Channel Management ---
+        function openChannelModal() {
+            document.getElementById("channel-modal").style.display = "flex";
+        }
+
+        function closeChannelModal() {
+            document.getElementById("channel-modal").style.display = "none";
+        }
+
+        function createChannel() {
+            const name = document.getElementById("new-channel-name").value.trim();
+            if (name) {
+                const channelId = name.toLowerCase().replace(/\s+/g, "-");
+                db.collection("chats").doc(channelId).set({
+                    name: name,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                closeChannelModal();
+                // Refresh channels
+                renderFriends(); // Re-using renderFriends to add channel, or create specific renderChannels
+                // For now, let's just add it to the list manually
+                const container = document.getElementById("channels-container");
+                const item = document.createElement("div");
+                item.className = "channel-item";
+                item.innerHTML = `<span class="channel-hash">#</span> ${name}`;
+                item.onclick = () => switchChat(channelId);
+                container.appendChild(item);
+                switchChat(channelId);
+            }
+        }
+
+        // --- Logout ---
+        document.getElementById("logout-btn").onclick = () => {
+            auth.signOut().then(() => {
+                window.location.href = "index.html";
+            });
+        };
+
+        // --- Input Submit Listener ---
+        document.getElementById("msg-input").addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                sendMessage();
+            }
+        });
 
     </script>
 </body>
