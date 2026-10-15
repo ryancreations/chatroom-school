@@ -8,53 +8,49 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <!-- PeerJS for WebRTC calls -->
+    <!-- PeerJS for Video Calls -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <!-- Emoji Button -->
     <script src="https://cdn.jsdelivr.net/npm/@joeattardi/emoji-button@3.0.3/dist/index.min.js"></script>
     
     <style>
-        * {
+        /* --- Global & Layout --- */
+        body {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            display: flex;
-            height: 100vh;
             background-color: #313338;
             color: white;
+            height: 100vh;
+            display: flex;
             overflow: hidden;
         }
 
-        /* Sidebar */
+        /* --- Sidebar --- */
         #sidebar {
             width: 260px;
             background-color: #2B2D31;
+            border-right: 1px solid #232428;
             display: flex;
             flex-direction: column;
-            border-right: 1px solid #232428;
             z-index: 20;
+            flex-shrink: 0;
         }
 
         .sidebar-header {
-            padding: 15px;
+            height: 50px;
             background-color: #202225;
             border-bottom: 1px solid #232428;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-        }
-
-        .sidebar-header h2 {
-            font-size: 18px;
+            justify-content: space-between;
+            padding: 0 15px;
             font-weight: bold;
+            font-size: 18px;
         }
 
         .user-profile {
-            padding: 15px;
+            padding: 10px 15px;
             background-color: #2B2D31;
             border-bottom: 1px solid #232428;
             display: flex;
@@ -66,13 +62,10 @@
             width: 32px;
             height: 32px;
             border-radius: 50%;
-            object-fit: cover;
-            margin-right: 10px;
             background-color: #5865F2;
-        }
-
-        .user-info {
-            flex-grow: 1;
+            background-size: cover;
+            background-position: center;
+            margin-right: 10px;
         }
 
         .username-display {
@@ -80,144 +73,196 @@
             font-size: 14px;
         }
 
-        .friend-list-container {
+        /* --- Channels Section --- */
+        .channels-section {
+            padding: 10px;
             flex-grow: 1;
             overflow-y: auto;
-            padding: 10px;
         }
 
-        .friend-item {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .friend-item:hover {
-            background-color: #35373C;
-        }
-
-        .friend-avatar {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            margin-right: 10px;
-            background-color: #5865F2;
-        }
-
-        .friend-name {
-            font-size: 14px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: #747F8D;
-            margin-left: auto;
-        }
-
-        .online {
-            background-color: #3BA55C;
-        }
-
-        .add-friend-section {
-            padding: 15px;
-            border-top: 1px solid #232428;
-        }
-
-        .add-friend-input {
-            width: 100%;
-            padding: 8px;
-            background-color: #40444B;
-            border: none;
-            border-radius: 4px;
-            color: white;
-            margin-bottom: 10px;
-        }
-
-        .add-friend-btn {
-            width: 100%;
-            padding: 8px;
-            background-color: #5865F2;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .logout-btn {
-            margin-top: 10px;
-            padding: 8px;
-            background-color: #ED4245;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        /* Chat Area */
-        #chat-area {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        .chat-header {
-            padding: 15px;
-            background-color: #202225;
-            border-bottom: 1px solid #232428;
+        .section-header {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #B9BBBE;
+            font-weight: bold;
+            margin-bottom: 5px;
+            padding-left: 5px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .call-btn {
+        .channel-item {
+            padding: 8px 10px;
+            margin-bottom: 2px;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #B9BBBE;
+            display: flex;
+            align-items: center;
+            font-size: 15px;
+            position: relative;
+        }
+
+        .channel-item:hover {
+            background-color: #35373C;
+            color: #DCDDDE;
+        }
+
+        .channel-item.active {
+            background-color: #3F4147;
+            color: white;
+        }
+
+        .channel-hash {
+            margin-right: 8px;
+            color: #72767D;
+            font-weight: bold;
+        }
+
+        .add-channel-btn {
+            background: none;
+            border: none;
+            color: #B9BBBE;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0 5px;
+        }
+        
+        .add-channel-btn:hover {
+            color: white;
+        }
+
+        /* --- Stealth Section --- */
+        .stealth-section {
+            padding: 10px 15px;
+            border-top: 1px solid #232428;
+            background-color: #2B2D31;
+        }
+
+        .stealth-input-group {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 5px;
+        }
+
+        .stealth-input {
+            width: 100%;
+            background-color: #40444B;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 8px;
+            color: white;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .stealth-btn {
             background-color: #5865F2;
             color: white;
             border: none;
-            padding: 8px 15px;
             border-radius: 4px;
+            padding: 6px 10px;
             cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
         }
 
-        .messages-container {
+        .stealth-btn:hover {
+            background-color: #4752C4;
+        }
+
+        /* --- Chat Area --- */
+        #chat-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background-color: #313338; /* Fallback */
+            background-size: cover;
+            background-position: center;
+        }
+
+        .chat-header {
+            height: 50px;
+            background-color: #3F4147;
+            border-bottom: 1px solid #232428;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            z-index: 10;
+        }
+
+        .chat-title {
+            font-weight: bold;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: #B9BBBE;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .icon-btn:hover {
+            color: white;
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        /* --- Messages --- */
+        #messages {
             flex-grow: 1;
             overflow-y: auto;
             padding: 20px;
             display: flex;
             flex-direction: column;
             gap: 10px;
+            z-index: 5;
         }
 
         .message {
             max-width: 70%;
             padding: 10px 15px;
             border-radius: 8px;
-            word-wrap: break-word;
             background-color: rgba(64, 68, 75, 0.9);
             backdrop-filter: blur(5px);
+            position: relative;
+            word-wrap: break-word;
         }
 
         .message.self {
             align-self: flex-end;
-            border-bottom-right-radius: 4px;
+            border-bottom-right-radius: 2px;
         }
 
         .message.other {
             align-self: flex-start;
-            border-bottom-left-radius: 4px;
+            border-bottom-left-radius: 2px;
         }
 
         .message-author {
+            font-size: 12px;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .mod-icon {
+            color: #FFD700; /* Gold */
             font-size: 14px;
         }
 
@@ -227,489 +272,464 @@
         }
 
         .message-time {
-            font-size: 11px;
-            color: #999;
-            margin-top: 5px;
-            text-align: right;
+            font-size: 10px;
+            color: #72767D;
+            position: absolute;
+            bottom: 5px;
+            right: 10px;
         }
 
+        /* Gradient Name Style */
+        .gradient-name {
+            background: linear-gradient(to right, #ff00cc, #333399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* --- Input Area --- */
         .input-area {
             padding: 15px;
-            background-color: #2B2D31;
-            border-top: 1px solid #232428;
+            background-color: #313338;
             display: flex;
-            gap: 10px;
             align-items: center;
+            gap: 10px;
+            z-index: 10;
         }
 
-        .msg-input {
+        #msg-input {
             flex-grow: 1;
-            padding: 12px;
             background-color: #40444B;
             border: none;
             border-radius: 8px;
+            padding: 12px;
             color: white;
             font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
         }
 
-        .attach-btn, .emoji-btn {
+        #msg-input.error {
+            border: 2px solid #ED4245;
+            color: #ED4245;
+        }
+
+        .input-icon-btn {
             background: none;
             border: none;
             color: #B9BBBE;
             cursor: pointer;
             font-size: 20px;
+            padding: 5px;
         }
 
-        /* Settings Panel */
-        #settings-panel {
+        .input-icon-btn:hover {
+            color: white;
+        }
+
+        /* --- Emoji Picker (Step 7) --- */
+        #emoji-picker-container {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 300px;
-            height: 100%;
-            background-color: #2B2D31;
-            z-index: 100;
-            transform: translateX(-100%);
-            transition: transform 0.3s ease-in-out;
-            border-right: 1px solid #232428;
-            padding: 20px;
-            box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+            bottom: 60px; /* Floats nicely above input */
+            left: 10px;
+            z-index: 100; /* Below modals (2000) but above input (10) */
+            /* Ensure it doesn't overlap critical UI by being offset from edges */
         }
 
-        #settings-panel.open {
-            transform: translateX(0);
-        }
-
-        .settings-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .settings-group {
-            margin-bottom: 15px;
-        }
-
-        .settings-label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 12px;
-            color: #B9BBBE;
-        }
-
-        .settings-input {
-            width: 100%;
-            padding: 10px;
-            background-color: #40444B;
-            border: none;
-            border-radius: 4px;
-            color: white;
-        }
-
-        .save-settings-btn {
-            width: 100%;
-            padding: 10px;
-            background-color: #5865F2;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        /* Alert Overlays */
+        /* --- Alerts --- */
         .alert-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0,0,0,0.9);
             z-index: 1000;
             display: none;
-            justify-content: center;
-            align-items: center;
             flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
         }
 
-        .blinker-alert {
-            animation: blinker 1s linear infinite;
+        .blinker-alert h1 { color: #ED4245; font-size: 4rem; animation: blink 1s infinite; }
+        .vape-alert h1 { color: #3BA55C; font-size: 4rem; }
+        
+        /* NEW: Cart Alert Styling (Green/Gold Theme) */
+        .cart-alert h1 { 
+            color: #F0B232; /* Gold */
+            font-size: 4rem; 
+            animation: cartPulse 1.5s infinite;
+            text-shadow: 0 0 10px #3BA55C, 0 0 20px #3BA55C; /* Green Glow */
+        }
+        .cart-alert h2 {
+            color: #3BA55C; /* Green Text */
+            font-size: 2rem;
+            margin-top: 10px;
         }
 
-        @keyframes blinker {
+        @keyframes blink {
+            0% { opacity: 1; }
             50% { opacity: 0; }
+            100% { opacity: 1; }
         }
 
-        .alert-title {
-            font-size: 48px;
-            font-weight: bold;
-            margin-bottom: 20px;
+        @keyframes cartPulse {
+            0% { transform: scale(1); text-shadow: 0 0 10px #3BA55C; }
+            50% { transform: scale(1.1); text-shadow: 0 0 30px #F0B232, 0 0 10px #3BA55C; }
+            100% { transform: scale(1); text-shadow: 0 0 10px #3BA55C; }
         }
 
-        .blinker-title {
-            color: #ED4245;
-        }
-
-        .vape-title {
-            color: #3BA55C;
-        }
-
-        /* Stealth Mode */
+        /* --- Stealth Layer --- */
         #stealth-layer {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #FFFFFF;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: white;
             z-index: 10000;
             display: none;
             flex-direction: column;
         }
 
-        .stealth-video-container {
-            position: relative;
+        #stealth-frame {
             width: 100%;
             height: 100%;
+            border: none;
+        }
+
+        .stealth-ui-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            background: rgba(255,255,255,0.1);
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
         }
-
-        .stealth-overlay {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background-color: rgba(0,0,0,0.7);
-            padding: 10px;
-            border-radius: 5px;
-            color: white;
-        }
-
-        /* Emoji Picker Container */
-        #emoji-picker-container {
-            position: absolute;
-            bottom: 70px;
-            right: 20px;
-            z-index: 50;
-        }
-
-        /* Link Embed Styles */
-        .link-embed {
-            background-color: #2B2D31;
-            border-left: 4px solid #5865F2;
-            padding: 10px;
-            margin-top: 5px;
-            border-radius: 4px;
-            max-width: 100%;
-            word-break: break-all;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .link-embed:hover {
-            background-color: #3F4147;
-        }
-
-        .link-embed-title {
-            font-weight: bold;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-
-        .link-embed-url {
+        
+        .stealth-top-bar {
+            background: #f0f0f0;
+            padding: 5px 10px;
             font-size: 12px;
-            color: #B9BBBE;
-        }
-
-        /* Lobby Screen */
-        #lobby-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #313338;
-            z-index: 2000;
+            color: #333;
             display: flex;
-            justify-content: center;
-            align-items: center;
+            justify-content: space-between;
         }
 
-        .lobby-card {
-            background-color: #383A40;
-            padding: 30px;
-            border-radius: 10px;
-            text-align: center;
-            width: 400px;
+        .stealth-content {
+            color: #333;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            padding: 20px;
         }
 
-        .lobby-input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            background-color: #202225;
-            border: none;
-            border-radius: 5px;
-            color: white;
-        }
-
-        .lobby-btn {
-            padding: 10px 20px;
-            background-color: #5865F2;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        /* Mod Tools */
-        #mod-tools-panel {
-            position: fixed;
-            top: 20px;
-            right: 20px;
+        /* --- Mod Tools & Settings --- */
+        .modal-panel {
+            position: absolute;
             background-color: #2B2D31;
-            padding: 15px;
             border-radius: 8px;
+            padding: 15px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.5);
             z-index: 100;
             display: none;
         }
 
-        .mod-tool-btn {
+        #settings-panel {
+            top: 60px;
+            left: 10px;
+            width: 250px;
+        }
+
+        #mod-tools-panel {
+            top: 60px;
+            right: 10px;
+            width: 200px;
+        }
+
+        .setting-row {
+            margin-bottom: 10px;
+        }
+
+        .setting-label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #B9BBBE;
+        }
+
+        .setting-input {
+            width: 100%;
+            background: #40444B;
+            border: none;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        .mod-btn {
             display: block;
             width: 100%;
             padding: 8px;
             margin-bottom: 5px;
-            background-color: #40444B;
-            color: white;
+            background: #40444B;
             border: none;
+            color: white;
             border-radius: 4px;
             cursor: pointer;
+            text-align: left;
         }
 
-        .mod-tool-btn:hover {
-            background-color: #5865F2;
-        }
+        .mod-btn:hover { background: #5865F2; }
 
-        /* Call Modal */
-        #call-modal {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: #2B2D31;
-            padding: 20px;
-            border-radius: 10px;
-            z-index: 1000;
-            display: none;
-            min-width: 300px;
+        /* Close Button for Panels */
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #B9BBBE;
+            font-size: 16px;
+            cursor: pointer;
+            line-height: 1;
         }
+        .close-btn:hover { color: white; }
 
-        .call-modal-content {
-            margin-bottom: 15px;
-        }
-
-        /* Video Overlay */
+        /* --- Call Overlay --- */
         #video-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #18191C;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #18191C;
             z-index: 500;
             display: none;
             flex-direction: column;
         }
 
-        .remote-video-container {
-            flex-grow: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        #remote-video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
 
-        .local-video-player {
+        #local-video {
             position: absolute;
             bottom: 20px;
             right: 20px;
             width: 200px;
             height: 150px;
-            background-color: #000;
+            background: #000;
             border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            object-fit: cover;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            z-index: 510;
         }
 
-        .video-controls {
+        .call-controls {
             position: absolute;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
             gap: 10px;
+            z-index: 520;
         }
 
-        .video-control-btn {
+        .call-btn {
             padding: 10px 20px;
             border: none;
-            border-radius: 5px;
+            border-radius: 20px;
             cursor: pointer;
             font-weight: bold;
         }
 
-        .mute-btn {
-            background-color: #ED4245;
-            color: white;
-        }
+        .btn-hangup { background: #ED4245; color: white; }
+        .btn-mute { background: #40444B; color: white; }
 
-        .hangup-btn {
-            background-color: #ED4245;
-            color: white;
-        }
-
-        /* Gradient Name Class */
-        .gradient-name {
-            background: linear-gradient(to right, #ff00cc, #333399);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-
-        /* Rules Modal */
-        #rules-modal {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: #2B2D31;
-            padding: 20px;
-            border-radius: 10px;
-            z-index: 1000;
-            display: none;
-            width: 500px;
-        }
-
-        .rules-textarea {
-            width: 100%;
+        /* --- In-Call Chat Box --- */
+        #in-call-chat {
+            position: absolute;
+            bottom: 80px;
+            left: 20px;
+            width: 300px;
             height: 200px;
-            background-color: #40444B;
-            border: none;
-            border-radius: 5px;
-            color: white;
+            background: rgba(43, 45, 49, 0.9);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            z-index: 510;
+            border: 1px solid #232428;
+        }
+
+        #in-call-messages {
+            flex-grow: 1;
+            overflow-y: auto;
             padding: 10px;
+            font-size: 12px;
+        }
+
+        .in-call-msg {
+            margin-bottom: 5px;
+            word-wrap: break-word;
+        }
+
+        #in-call-input {
+            width: calc(100% - 20px);
+            margin: 10px;
+            background: #40444B;
+            border: none;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        /* --- Modal Overlays (Rules, Channel Create, etc) --- */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #2B2D31;
+            padding: 20px;
+            border-radius: 8px;
+            width: 300px;
+            position: relative; /* For close button */
+        }
+
+        .modal-title {
+            margin-top: 0;
             margin-bottom: 15px;
         }
 
-        /* Dev Menu */
-        #dev-menu {
-            position: absolute;
-            background-color: #111111;
-            border: 1px solid #00FF00;
-            padding: 10px;
-            border-radius: 5px;
-            z-index: 10000;
-            display: none;
-        }
-
-        .dev-btn {
-            display: block;
-            width: 100%;
-            padding: 5px;
-            margin-bottom: 5px;
-            background-color: #333;
-            color: #00FF00;
-            border: none;
-            cursor: pointer;
-            text-align: left;
-        }
-
-        .dev-btn:hover {
-            background-color: #00FF00;
-            color: #000;
-        }
-
         /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 8px;
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #2B2D31; }
+        ::-webkit-scrollbar-thumb { background: #1A1B1E; border-radius: 4px; }
+
+        /* --- SMOKE EFFECT (FIXED) --- */
+        #smoke-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0;
+            background: radial-gradient(circle at center, rgba(200,200,200,0.4) 0%, rgba(150,150,150,0.2) 40%, transparent 80%);
+            mix-blend-mode: screen;
+            filter: blur(20px);
         }
 
-        ::-webkit-scrollbar-track {
-            background: #2B2D31;
+        .smoke-active {
+            animation: smokeDiffuse 4s ease-out forwards;
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: #1A1B1E;
-            border-radius: 4px;
+        @keyframes smokeDiffuse {
+            0% {
+                opacity: 0;
+                transform: scale(0.5);
+                background: radial-gradient(circle at center, rgba(255,255,255,0.9) 0%, transparent 60%);
+            }
+            20% {
+                opacity: 0.8;
+                transform: scale(1.2);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(1.5);
+                background: radial-gradient(circle at center, rgba(200,200,200,0.5) 0%, rgba(100,100,100,0.3) 50%, transparent 80%);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(2);
+                background: radial-gradient(circle at center, rgba(150,150,150,0.2) 0%, transparent 90%);
+            }
         }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #5865F2;
+        
+        /* Connection Status Styles */
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .status-connecting { background-color: #F0B232; animation: pulse 1s infinite; }
+        .status-connected { background-color: #3BA55C; }
+        .status-failed { background-color: #ED4245; }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Lobby Screen -->
-    <div id="lobby-screen">
-        <div class="lobby-card">
-            <h2>Welcome to SchoolChat</h2>
-            <p>Customize your lobby experience</p>
-            <img id="lobby-preview" src="" alt="Lobby Preview" style="max-width: 100%; height: 150px; object-fit: cover; margin: 10px 0; border-radius: 5px;">
-            <input type="text" id="lobby-bg-input" class="lobby-input" placeholder="Enter image URL for background...">
-            <button id="join-session-btn" class="lobby-btn">Join Study Session</button>
-        </div>
-    </div>
+    <!-- Smoke Overlay Element -->
+    <div id="smoke-overlay"></div>
 
     <!-- Sidebar -->
     <div id="sidebar">
         <div class="sidebar-header">
-            <h2>SchoolChat</h2>
-            <button id="stealth-toggle-btn" class="call-btn" style="padding: 5px 10px; font-size: 12px;">Stealth</button>
+            <span>SchoolChat</span>
         </div>
-        
-        <div class="user-profile" id="user-profile-btn">
-            <img id="user-avatar" src="https://via.placeholder.com/32" alt="Avatar" class="avatar">
-            <div class="user-info">
-                <div id="user-username" class="username-display">Loading...</div>
-                <span style="font-size: 12px; color: #B9BBBE;">Online</span>
+
+        <div class="user-profile" onclick="toggleSettings()">
+            <div class="avatar" id="sidebar-avatar"></div>
+            <div class="username-display" id="sidebar-username">Loading...</div>
+        </div>
+
+        <!-- New Stealth Section -->
+        <div class="stealth-section">
+            <div style="font-size:11px; color:#B9BBBE; margin-bottom:5px; font-weight:bold;">STEALTH MODE</div>
+            <div class="stealth-input-group">
+                <input type="text" id="stealth-link-input" class="stealth-input" placeholder="Paste URL here...">
             </div>
+            <button id="stealth-activate-btn" class="stealth-btn" style="width:100%">Go Stealth</button>
         </div>
 
-        <div class="friend-list-container" id="friends-container">
-            <!-- Friends will be rendered here -->
-        </div>
-
-        <div class="add-friend-section">
-            <input type="text" id="add-friend-input" class="add-friend-input" placeholder="Email or Username...">
-            <button id="add-friend-btn" class="add-friend-btn">+ Add Friend</button>
-            <button id="logout-btn" class="logout-btn">Log Out</button>
+        <div class="channels-section">
+            <div class="section-header">
+                <span>Channels</span>
+                <button class="add-channel-btn" onclick="openChannelModal()">+</button>
+            </div>
+            <div id="channels-container">
+                <!-- Channels will be injected here -->
+            </div>
         </div>
     </div>
 
     <!-- Chat Area -->
     <div id="chat-area">
         <div class="chat-header">
-            <h3 id="current-chat-name">#general</h3>
-            <div style="display: flex; gap: 10px;">
-                <button id="call-btn" class="call-btn">Call</button>
-                <button id="blinker-btn" class="call-btn" style="background-color: #ED4245;">Blinker</button>
-                <button id="vape-btn" class="call-btn" style="background-color: #3BA55C;">Vape Break</button>
-                <button id="rules-btn" class="call-btn" style="background-color: #5865F2;">Rules</button>
+            <div class="chat-title">
+                <span class="channel-hash">#</span><span id="current-chat-name">general</span>
+            </div>
+            <div class="header-buttons">
+                <button class="icon-btn" id="btn-call" title="Start Call">📞</button>
+                <button class="icon-btn" id="btn-blinker" title="Blinker Alert">⚠️</button>
+                <!-- Renamed to Vape -->
+                <button class="icon-btn" id="btn-vape" title="Vape Break">💨</button>
+                <!-- Added Cart Button -->
+                <button class="icon-btn" id="btn-cart" title="Cart Alert">🛒</button>
+                <button class="icon-btn" id="btn-rules" title="Rules">📜</button>
             </div>
         </div>
 
-        <div class="messages-container" id="messages">
+        <div id="messages">
             <!-- Messages will appear here -->
         </div>
 
         <div class="input-area">
             <input type="file" id="image-upload" accept="image/*" style="display: none;">
-            <button id="upload-btn" class="attach-btn">📎</button>
-            <input type="text" id="msg-input" class="msg-input" placeholder="Message #general">
-            <button id="emoji-trigger" class="emoji-btn">😊</button>
+            <button id="upload-btn" class="input-icon-btn">📎</button>
+            <input type="text" id="msg-input" placeholder="Message #general">
+            <button id="emoji-trigger" class="input-icon-btn">😊</button>
         </div>
 
         <!-- Emoji Picker Container -->
@@ -717,108 +737,127 @@
     </div>
 
     <!-- Settings Panel -->
-    <div id="settings-panel">
-        <div class="settings-header">
-            <h3>Settings</h3>
-            <button id="close-settings-btn" class="call-btn" style="background-color: #ED4245;">X</button>
+    <div id="settings-panel" class="modal-panel">
+        <button class="close-btn" onclick="toggleSettings()">✖</button>
+        <h3>Settings</h3>
+        <div class="setting-row">
+            <label class="setting-label">Username</label>
+            <input type="text" id="settings-username" class="setting-input">
         </div>
-        <div class="settings-group">
-            <label class="settings-label">Username</label>
-            <input type="text" id="settings-username" class="settings-input">
+        <div class="setting-row">
+            <label class="setting-label">Avatar URL</label>
+            <input type="text" id="settings-avatar" class="setting-input">
         </div>
-        <div class="settings-group">
-            <label class="settings-label">Avatar URL</label>
-            <input type="text" id="settings-avatar" class="settings-input">
+        <div class="setting-row">
+            <label class="setting-label">Name Color</label>
+            <input type="color" id="settings-color" class="setting-input" value="#ffffff">
         </div>
-        <div class="settings-group">
-            <label class="settings-label">Name Color</label>
-            <input type="color" id="settings-color" class="settings-input" value="#ffffff">
-        </div>
-        <div class="settings-group">
-            <label class="settings-label">Gradient Names</label>
+        <div class="setting-row">
+            <label class="setting-label">Gradient Names</label>
             <input type="checkbox" id="settings-gradient-toggle">
         </div>
-        <div class="settings-group">
-            <label class="settings-label">Chat Background Image (URL)</label>
-            <input type="text" id="settings-bg-url" class="settings-input" placeholder="Image URL...">
+        <div class="setting-row">
+            <label class="setting-label">Chat Background Image (URL)</label>
+            <input type="text" id="settings-bg-url" class="setting-input" placeholder="Image URL...">
         </div>
-        <button id="save-settings-btn" class="save-settings-btn">Save Changes</button>
+        <button id="save-settings-btn" class="mod-btn">Save Changes</button>
     </div>
 
     <!-- Blinker Alert -->
     <div id="blinker-alert" class="alert-overlay blinker-alert">
-        <div class="alert-title blinker-title">BLINKER ALERT!</div>
+        <h1>BLINKER ALERT!</h1>
         <p style="font-size: 24px;">Teacher is watching!</p>
     </div>
 
     <!-- Vape Alert -->
-    <div id="vape-alert" class="alert-overlay">
-        <div class="alert-title vape-title">VAPE BREAK TIME</div>
+    <div id="vape-alert" class="alert-overlay vape-alert">
+        <h1>VAPE BREAK TIME</h1>
         <p style="font-size: 24px;">Take a breath, clear your head.</p>
+    </div>
+
+    <!-- Cart Alert -->
+    <div id="cart-alert" class="alert-overlay cart-alert">
+        <h1>CART ALERT!</h1>
+        <h2>New Item Added!</h2>
     </div>
 
     <!-- Stealth Layer -->
     <div id="stealth-layer">
-        <div class="stealth-video-container">
-            <iframe id="stealth-iframe" src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1" 
-                    frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen style="width: 100%; height: 100%;"></iframe>
-            <div class="stealth-overlay">
-                <h3>Mr. Anderson's Math Class</h3>
-                <p>Chapter 4: Calculus Basics</p>
+        <iframe id="stealth-frame" src="" frameborder="0" allowfullscreen></iframe>
+        <div class="stealth-ui-overlay">
+            <div class="stealth-top-bar">
+                <span>Chrome</span>
+                <span>school.google.com</span>
+            </div>
+            <div class="stealth-content">
+                <h2>Loading Class Material...</h2>
+                <p>Please wait while we sync your assignments.</p>
             </div>
         </div>
     </div>
 
     <!-- Mod Tools Panel -->
-    <div id="mod-tools-panel">
-        <h3 style="margin-bottom: 10px;">Mod Tools</h3>
-        <button class="mod-tool-btn" id="delete-msg-btn">Delete Message</button>
-        <button class="mod-tool-btn" id="edit-msg-btn">Edit Message</button>
-        <button class="mod-tool-btn" id="view-data-btn">View Data</button>
-        <button class="mod-tool-btn" id="close-mod-tools-btn" style="background-color: #ED4245;">Close</button>
+    <div id="mod-tools-panel" class="modal-panel">
+        <button class="close-btn" onclick="toggleModTools()">✖</button>
+        <h3>Mod Tools</h3>
+        <button class="mod-btn" id="delete-msg-btn">Delete Message</button>
+        <button class="mod-btn" id="edit-msg-btn">Edit Message</button>
+        <button class="mod-btn" id="view-data-btn">View Data</button>
     </div>
 
     <!-- Call Modal -->
-    <div id="call-modal">
-        <div class="call-modal-content">
+    <div id="call-modal" class="modal">
+        <div class="modal-content">
             <h3>Your ID: <span id="my-peer-id">Generating...</span></h3>
+            <div class="setting-row">
+                <input type="text" id="room-id-input" class="setting-input" placeholder="Enter Room ID or leave blank to generate">
+            </div>
+            <button id="create-room-btn" class="mod-btn">Create/Join Room</button>
+            <div id="active-room-info" style="margin-top: 10px; font-size: 12px; color: #B9BBBE;"></div>
+            <button id="close-call-modal-btn" class="mod-btn" style="background-color: #ED4245; margin-top: 10px;">Close</button>
         </div>
-        <div class="call-modal-content">
-            <input type="text" id="room-id-input" class="settings-input" placeholder="Enter Room ID or leave blank to generate">
-            <button id="create-room-btn" class="save-settings-btn">Create/Join Room</button>
-        </div>
-        <div id="active-room-info" style="margin-top: 10px; font-size: 12px; color: #B9BBBE;"></div>
-        <button id="close-call-modal-btn" class="call-btn" style="margin-top: 10px; background-color: #ED4245;">Close</button>
     </div>
 
     <!-- Video Overlay -->
     <div id="video-overlay">
-        <div class="remote-video-container">
-            <video id="remote-video" autoplay playsinline style="max-width: 100%; max-height: 100%;"></video>
+        <video id="remote-video" autoplay playsinline></video>
+        <video id="local-video" autoplay muted playsinline></video>
+        <div class="call-controls">
+            <button id="mute-btn" class="call-btn btn-mute">Mute</button>
+            <button id="hangup-btn" class="call-btn btn-hangup">Hang Up</button>
         </div>
-        <div class="local-video-player">
-            <video id="local-video" autoplay muted playsinline></video>
-        </div>
-        <div class="video-controls">
-            <button id="mute-btn" class="video-control-btn mute-btn">Mute</button>
-            <button id="hangup-btn" class="video-control-btn hangup-btn">Hang Up</button>
+        <!-- In-Call Chat Box -->
+        <div id="in-call-chat">
+            <div id="in-call-messages"></div>
+            <input type="text" id="in-call-input" placeholder="Chat in call...">
         </div>
     </div>
 
     <!-- Rules Modal -->
-    <div id="rules-modal">
-        <h3>Server Rules</h3>
-        <textarea id="rules-textarea" class="rules-textarea"></textarea>
-        <button id="save-rules-btn" class="save-settings-btn">Save Rules</button>
-        <button id="close-rules-btn" class="call-btn" style="margin-top: 10px; background-color: #ED4245;">Close</button>
+    <div id="rules-modal" class="modal">
+        <div class="modal-content">
+            <h3 class="modal-title">Server Rules</h3>
+            <textarea id="rules-textarea" class="setting-input" style="height: 200px;"></textarea>
+            <button id="save-rules-btn" class="mod-btn">Save Rules</button>
+            <button id="close-rules-btn" class="mod-btn" style="background-color: #ED4245; margin-top: 10px;">Close</button>
+        </div>
+    </div>
+
+    <!-- Channel Create Modal -->
+    <div id="channel-modal" class="modal">
+        <div class="modal-content">
+            <h3 class="modal-title">Create Channel</h3>
+            <input type="text" id="new-channel-name" class="setting-input" placeholder="Channel Name (e.g., gaming)">
+            <button id="create-channel-btn" class="mod-btn">Create</button>
+            <button id="close-channel-modal-btn" class="mod-btn" style="background-color: #ED4245; margin-top: 10px;">Cancel</button>
+        </div>
     </div>
 
     <!-- Dev Menu -->
-    <div id="dev-menu">
-        <button class="dev-btn" id="dev-delete-btn">Delete Message</button>
-        <button class="dev-btn" id="dev-edit-btn">Edit Message</button>
-        <button class="dev-btn" id="dev-view-btn">View Data</button>
+    <div id="dev-menu" style="position: absolute; background-color: #111111; border: 1px solid #00FF00; padding: 10px; border-radius: 5px; z-index: 10000; display: none;">
+        <button class="mod-btn" id="dev-delete-btn">Delete Message</button>
+        <button class="mod-btn" id="dev-edit-btn">Edit Message</button>
+        <button class="mod-btn" id="dev-view-btn">View Data</button>
     </div>
 
     <script>
@@ -847,18 +886,14 @@
         let activeRoomId = null;
         let unsubMessages = null;
         let emojiPicker = null;
+        let window.currentMsgId = null;
 
         // --- DOM Elements ---
         const els = {
-            lobbyScreen: document.getElementById('lobby-screen'),
-            lobbyBgInput: document.getElementById('lobby-bg-input'),
-            lobbyPreview: document.getElementById('lobby-preview'),
-            joinBtn: document.getElementById('join-session-btn'),
             sidebar: document.getElementById('sidebar'),
-            friendsContainer: document.getElementById('friends-container'),
-            addFriendInput: document.getElementById('add-friend-input'),
-            addFriendBtn: document.getElementById('add-friend-btn'),
-            logoutBtn: document.getElementById('logout-btn'),
+            channelsContainer: document.getElementById('channels-container'),
+            stealthLinkInput: document.getElementById('stealth-link-input'),
+            stealthActivateBtn: document.getElementById('stealth-activate-btn'),
             chatArea: document.getElementById('chat-area'),
             chatName: document.getElementById('current-chat-name'),
             messagesContainer: document.getElementById('messages'),
@@ -868,35 +903,34 @@
             emojiTrigger: document.getElementById('emoji-trigger'),
             emojiPickerContainer: document.getElementById('emoji-picker-container'),
             settingsPanel: document.getElementById('settings-panel'),
-            userProfileBtn: document.getElementById('user-profile-btn'),
-            closeSettingsBtn: document.getElementById('close-settings-btn'),
+            userProfile: document.querySelector('.user-profile'),
             settingsUsername: document.getElementById('settings-username'),
             settingsAvatar: document.getElementById('settings-avatar'),
             settingsColor: document.getElementById('settings-color'),
             settingsGradientToggle: document.getElementById('settings-gradient-toggle'),
             settingsBgUrl: document.getElementById('settings-bg-url'),
             saveSettingsBtn: document.getElementById('save-settings-btn'),
-            userAvatar: document.getElementById('user-avatar'),
-            userUsername: document.getElementById('user-username'),
-            stealthToggleBtn: document.getElementById('stealth-toggle-btn'),
+            sidebarAvatar: document.getElementById('sidebar-avatar'),
+            sidebarUsername: document.getElementById('sidebar-username'),
             stealthLayer: document.getElementById('stealth-layer'),
-            stealthIframe: document.getElementById('stealth-iframe'),
+            stealthFrame: document.getElementById('stealth-frame'),
+            smokeOverlay: document.getElementById('smoke-overlay'),
             blinkerAlert: document.getElementById('blinker-alert'),
             vapeAlert: document.getElementById('vape-alert'),
-            callBtn: document.getElementById('call-btn'),
-            blinkerBtn: document.getElementById('blinker-btn'),
-            vapeBtn: document.getElementById('vape-btn'),
-            rulesBtn: document.getElementById('rules-btn'),
+            cartAlert: document.getElementById('cart-alert'),
+            btnCall: document.getElementById('btn-call'),
+            btnBlinker: document.getElementById('btn-blinker'),
+            btnVape: document.getElementById('btn-vape'),
+            btnCart: document.getElementById('btn-cart'),
+            btnRules: document.getElementById('btn-rules'),
             rulesModal: document.getElementById('rules-modal'),
             rulesTextarea: document.getElementById('rules-textarea'),
             saveRulesBtn: document.getElementById('save-rules-btn'),
             closeRulesBtn: document.getElementById('close-rules-btn'),
-            modToolsBtn: null, // Will be set below
             modToolsPanel: document.getElementById('mod-tools-panel'),
             deleteMsgBtn: document.getElementById('delete-msg-btn'),
             editMsgBtn: document.getElementById('edit-msg-btn'),
             viewDataBtn: document.getElementById('view-data-btn'),
-            closeModToolsBtn: document.getElementById('close-mod-tools-btn'),
             callModal: document.getElementById('call-modal'),
             myPeerId: document.getElementById('my-peer-id'),
             roomIdInput: document.getElementById('room-id-input'),
@@ -908,19 +942,18 @@
             localVideo: document.getElementById('local-video'),
             muteBtn: document.getElementById('mute-btn'),
             hangupBtn: document.getElementById('hangup-btn'),
+            inCallChat: document.getElementById('in-call-chat'),
+            inCallMessages: document.getElementById('in-call-messages'),
+            inCallInput: document.getElementById('in-call-input'),
+            channelModal: document.getElementById('channel-modal'),
+            newChannelName: document.getElementById('new-channel-name'),
+            createChannelBtn: document.getElementById('create-channel-btn'),
+            closeChannelModalBtn: document.getElementById('close-channel-modal-btn'),
             devMenu: document.getElementById('dev-menu'),
             devDeleteBtn: document.getElementById('dev-delete-btn'),
             devEditBtn: document.getElementById('dev-edit-btn'),
             devViewBtn: document.getElementById('dev-view-btn')
         };
-
-        // Create Mod Tools Button dynamically if not present in HTML structure explicitly linked
-        // Assuming it's triggered by a specific key or element, but we have the panel ready.
-        // Let's add a trigger button to the header if needed, but for now, we'll use a hotkey or existing button logic.
-        // Actually, let's just make sure the panel works. We need a way to open it. 
-        // I'll add a small floating button or use a key combo. Let's use Shift + M for Mod Tools.
-        
-        window.currentMsgId = null;
 
         // --- Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -956,59 +989,32 @@
         }
 
         function setupEventListeners() {
-            // Lobby
-            els.lobbyBgInput.addEventListener('input', (e) => {
-                const url = e.target.value;
-                els.lobbyPreview.src = url || 'https://via.placeholder.com/400x150';
-            });
-
-            els.joinBtn.addEventListener('click', () => {
-                const bgUrl = els.lobbyBgInput.value;
-                if (bgUrl) {
-                    updateProfileBackground(bgUrl);
-                }
-                els.lobbyScreen.style.display = 'none';
-            });
-
-            // Settings
-            els.userProfileBtn.addEventListener('click', () => toggleSettings(true));
-            els.closeSettingsBtn.addEventListener('click', () => toggleSettings(false));
-            els.saveSettingsBtn.addEventListener('click', saveSettings);
-
-            // Add Friend
-            els.addFriendBtn.addEventListener('click', addFriend);
-
-            // Logout
-            els.logoutBtn.addEventListener('click', () => {
-                auth.signOut().then(() => {
-                    window.location.href = 'index.html';
-                });
-            });
-
-            // Chat Actions
-            els.callBtn.addEventListener('click', openCallModal);
-            els.blinkerBtn.addEventListener('click', () => triggerAlert('blinker'));
-            els.vapeBtn.addEventListener('click', () => triggerAlert('vape'));
-            els.rulesBtn.addEventListener('click', openRulesModal);
-
             // Stealth Mode
-            els.stealthToggleBtn.addEventListener('click', toggleStealthMode);
+            els.stealthActivateBtn.addEventListener('click', activateStealth);
+            els.stealthLinkInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') activateStealth();
+            });
             document.addEventListener('keydown', (e) => {
                 if (e.shiftKey && e.key === 'CapsLock') {
                     e.preventDefault();
                     toggleStealthMode();
                 }
-                // Dev Menu Hotkey
                 if (e.shiftKey && e.key === 'Enter') {
                     e.preventDefault();
                     toggleDevMenu(e.clientX, e.clientY);
                 }
-                // Mod Tools Hotkey
                 if (e.shiftKey && e.key === 'm') {
                     e.preventDefault();
                     toggleModTools();
                 }
             });
+
+            // Chat Actions
+            els.btnCall.addEventListener('click', openCallModal);
+            els.btnBlinker.addEventListener('click', () => triggerAlert('blinker'));
+            els.btnVape.addEventListener('click', () => triggerAlert('vape'));
+            els.btnCart.addEventListener('click', () => triggerAlert('cart'));
+            els.btnRules.addEventListener('click', openRulesModal);
 
             // Input Handling
             els.msgInput.addEventListener('keypress', (e) => {
@@ -1025,7 +1031,6 @@
             els.deleteMsgBtn.addEventListener('click', deleteMessage);
             els.editMsgBtn.addEventListener('click', editMessage);
             els.viewDataBtn.addEventListener('click', showRawData);
-            els.closeModToolsBtn.addEventListener('click', () => els.modToolsPanel.style.display = 'none');
 
             // Call Modal
             els.createRoomBtn.addEventListener('click', createOrJoinRoom);
@@ -1039,6 +1044,10 @@
             els.saveRulesBtn.addEventListener('click', saveRules);
             els.closeRulesBtn.addEventListener('click', () => els.rulesModal.style.display = 'none');
 
+            // Channel Creation
+            els.createChannelBtn.addEventListener('click', createChannel);
+            els.closeChannelModalBtn.addEventListener('click', () => els.channelModal.style.display = 'none');
+
             // Dev Menu
             els.devDeleteBtn.addEventListener('click', deleteMessage);
             els.devEditBtn.addEventListener('click', editMessage);
@@ -1051,7 +1060,7 @@
                 if (user) {
                     currentUser = user;
                     await loadUserData();
-                    renderFriends();
+                    renderChannels();
                     listenToMessages(currentChatId);
                     checkForAlerts();
                     setupDevMode();
@@ -1072,10 +1081,10 @@
         }
 
         function updateUserUI(data) {
-            els.userUsername.textContent = data.username || 'User';
-            els.userUsername.className = 'username-display ' + (data.gradient ? 'gradient-name' : '');
-            els.userUsername.style.color = data.nameColor || '#ffffff';
-            els.userAvatar.src = data.avatar || 'https://via.placeholder.com/32';
+            els.sidebarUsername.textContent = data.username || 'User';
+            els.sidebarUsername.className = 'username-display ' + (data.gradient ? 'gradient-name' : '');
+            els.sidebarUsername.style.color = data.nameColor || '#ffffff';
+            els.sidebarAvatar.style.backgroundImage = `url(${data.avatar || 'https://via.placeholder.com/32'})`;
             
             if (data.chatBackground) {
                 els.chatArea.style.backgroundImage = `url(${data.chatBackground})`;
@@ -1094,11 +1103,10 @@
         }
 
         function toggleSettings(show) {
-            if (show) {
-                els.settingsPanel.classList.add('open');
-            } else {
-                els.settingsPanel.classList.remove('open');
+            if (show === undefined) {
+                show = els.settingsPanel.style.display === 'block';
             }
+            els.settingsPanel.style.display = show ? 'block' : 'none';
         }
 
         async function saveSettings() {
@@ -1216,94 +1224,62 @@
             scrollToBottom();
         }
 
-        // --- Friends System ---
-        async function addFriend() {
-            const query = els.addFriendInput.value.trim();
-            if (!query) return;
+        // --- Channels System ---
+        function renderChannels() {
+            els.channelsContainer.innerHTML = '';
+            
+            // Default General Channel
+            addChannelToList('general');
 
-            try {
-                let targetUser = null;
-                
-                // Try finding by email first
-                const emailQuery = await db.collection('users').where('email', '==', query).get();
-                if (!emailQuery.empty) {
-                    targetUser = emailQuery.docs[0].data();
-                } else {
-                    // Fallback to username prefix search
-                    const usernameQuery = await db.collection('users').where('username', '>=', query).limit(1).get();
-                    if (!usernameQuery.empty) {
-                        targetUser = usernameQuery.docs[0].data();
-                    }
-                }
-
-                if (targetUser) {
-                    if (targetUser.uid === currentUser.uid) {
-                        alert("You can't add yourself!");
-                        return;
-                    }
-                    
-                    const friendUpdate = {
-                        friends: firebase.firestore.FieldValue.arrayUnion(targetUser.uid)
-                    };
-                    
-                    await db.collection('users').doc(currentUser.uid).update(friendUpdate);
-                    els.addFriendInput.value = '';
-                    renderFriends(); // Refresh list
-                } else {
-                    alert("User not found.");
-                }
-            } catch (error) {
-                console.error("Error adding friend: ", error);
-                alert("Could not find user.");
-            }
+            // Fetch other channels if implemented in backend
+            // For now, assuming only general exists unless added via modal
         }
 
-        function renderFriends() {
-            els.friendsContainer.innerHTML = '';
+        function addChannelToList(name) {
+            const item = document.createElement('div');
+            item.className = 'channel-item';
+            if (name === currentChatId) item.classList.add('active');
             
-            if (!currentUser) return;
-
-            db.collection('users').doc(currentUser.uid).onSnapshot((doc) => {
-                if (doc.exists) {
-                    const data = doc.data();
-                    const friendUids = data.friends || [];
-                    
-                    friendUids.forEach(uid => {
-                        db.collection('users').doc(uid).get().then((snap) => {
-                            if (snap.exists) {
-                                const friendData = snap.data();
-                                const item = document.createElement('div');
-                                item.className = 'friend-item';
-                                
-                                const avatar = document.createElement('img');
-                                avatar.src = friendData.avatar || 'https://via.placeholder.com/24';
-                                avatar.className = 'friend-avatar';
-                                
-                                const name = document.createElement('span');
-                                name.textContent = friendData.username || 'User';
-                                name.className = 'friend-name';
-                                
-                                const status = document.createElement('div');
-                                status.className = 'status-dot online'; // Assume online for demo
-                                
-                                item.appendChild(avatar);
-                                item.appendChild(name);
-                                item.appendChild(status);
-                                
-                                item.addEventListener('click', () => {
-                                    // In a real app, this might open a DM. 
-                                    // For now, let's just highlight or switch to a 'DM-' channel if implemented.
-                                    // Since we only have 'general' and friends, let's assume clicking a friend opens their profile or a private chat if we had one.
-                                    // For this version, let's just log it or switch to a hypothetical private chat.
-                                    alert(`Chatting with ${friendData.username} (Feature coming soon!)`);
-                                });
-                                
-                                els.friendsContainer.appendChild(item);
-                            }
-                        });
-                    });
-                }
+            const hash = document.createElement('span');
+            hash.className = 'channel-hash';
+            hash.textContent = '#';
+            
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = name;
+            
+            item.appendChild(hash);
+            item.appendChild(nameSpan);
+            
+            item.addEventListener('click', () => {
+                switchChat(name);
+                // Update active state
+                document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
+                item.classList.add('active');
             });
+
+            els.channelsContainer.appendChild(item);
+        }
+
+        function openChannelModal() {
+            els.channelModal.style.display = 'flex';
+            els.newChannelName.value = '';
+        }
+
+        async function createChannel() {
+            const name = els.newChannelName.value.trim();
+            if (!name) return;
+
+            try {
+                await db.collection('channels').doc(name).set({
+                    name: name,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                addChannelToList(name);
+                els.channelModal.style.display = 'none';
+            } catch (error) {
+                console.error("Error creating channel: ", error);
+                alert("Could not create channel.");
+            }
         }
 
         // --- Alerts System ---
@@ -1331,7 +1307,12 @@
         }
 
         function showAlert(type) {
-            const alertEl = type === 'blinker' ? els.blinkerAlert : els.vapeAlert;
+            let alertEl;
+            if (type === 'blinker') alertEl = els.blinkerAlert;
+            else if (type === 'vape') alertEl = els.vapeAlert;
+            else if (type === 'cart') alertEl = els.cartAlert;
+            else return;
+
             alertEl.style.display = 'flex';
             setTimeout(() => {
                 alertEl.style.display = 'none';
@@ -1339,16 +1320,24 @@
         }
 
         // --- Stealth Mode ---
+        function activateStealth() {
+            const url = els.stealthLinkInput.value.trim();
+            if (url) {
+                els.stealthFrame.src = url;
+            } else {
+                els.stealthFrame.src = "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1";
+            }
+            els.stealthLayer.style.display = 'flex';
+        }
+
         function toggleStealthMode() {
             const isVisible = els.stealthLayer.style.display === 'flex';
             if (isVisible) {
                 els.stealthLayer.style.display = 'none';
                 // Reload iframe to stop video
-                els.stealthIframe.src = els.stealthIframe.src;
+                els.stealthFrame.src = els.stealthFrame.src;
             } else {
-                els.stealthLayer.style.display = 'flex';
-                // Start video
-                els.stealthIframe.src = "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1";
+                activateStealth();
             }
         }
 
@@ -1457,7 +1446,7 @@
 
         // --- Video Calls (PeerJS) ---
         function openCallModal() {
-            els.callModal.style.display = 'block';
+            els.callModal.style.display = 'flex';
             if (!peer) {
                 initPeer();
             }
@@ -1491,12 +1480,6 @@
             const roomId = els.roomIdInput.value.trim() || Math.random().toString(36).substring(2, 8);
             activeRoomId = roomId;
             els.activeRoomInfo.textContent = `Room ID: ${roomId}`;
-            
-            // If creating, wait for peer open then broadcast or connect
-            // For simplicity, let's assume we are connecting to a known ID or generating a room where others can join.
-            // Since this is P2P, we need the other person's ID. 
-            // Let's simplify: Generate an ID, show it. The user shares it.
-            // Or, if they enter an ID, connect to it.
             
             if (els.roomIdInput.value.trim()) {
                 connectCall(els.roomIdInput.value.trim());
@@ -1558,14 +1541,14 @@
                 if (audioTrack) {
                     audioTrack.enabled = !audioTrack.enabled;
                     els.muteBtn.textContent = audioTrack.enabled ? 'Mute' : 'Unmute';
-                    els.muteBtn.style.backgroundColor = audioTrack.enabled ? '#ED4245' : '#3BA55C';
+                    els.muteBtn.style.backgroundColor = audioTrack.enabled ? '#40444B' : '#3BA55C';
                 }
             }
         }
 
         // --- Rules System ---
         function openRulesModal() {
-            els.rulesModal.style.display = 'block';
+            els.rulesModal.style.display = 'flex';
             db.collection('chats').doc(currentChatId).get().then((doc) => {
                 if (doc.exists) {
                     els.rulesTextarea.value = doc.data().rules || "1. Be respectful.\n2. No spam.\n3. Have fun.";
