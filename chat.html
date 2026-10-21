@@ -2,1629 +2,496 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SchoolChat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Chat Room</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    
     <!-- PeerJS for Video Calls -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <!-- Emoji Button -->
-    <script src="https://cdn.jsdelivr.net/npm/@joeattardi/emoji-button@3.0.3/dist/index.min.js"></script>
-    
+
     <style>
-        /* --- Global & Layout --- */
         body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a1a;
+            color: #fff;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #313338;
-            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             height: 100vh;
-            display: flex;
-            overflow: hidden;
         }
 
-        /* --- Sidebar --- */
-        #sidebar {
-            width: 260px;
-            background-color: #2B2D31;
-            border-right: 1px solid #232428;
-            display: flex;
-            flex-direction: column;
-            z-index: 20;
-            flex-shrink: 0;
-        }
-
-        .sidebar-header {
-            height: 50px;
-            background-color: #202225;
-            border-bottom: 1px solid #232428;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 15px;
-            font-weight: bold;
-            font-size: 18px;
-        }
-
-        .user-profile {
-            padding: 10px 15px;
-            background-color: #2B2D31;
-            border-bottom: 1px solid #232428;
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-        }
-
-        .avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background-color: #5865F2;
-            background-size: cover;
-            background-position: center;
-            margin-right: 10px;
-        }
-
-        .username-display {
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        /* --- Channels Section --- */
-        .channels-section {
-            padding: 10px;
-            flex-grow: 1;
-            overflow-y: auto;
-        }
-
-        .section-header {
-            font-size: 12px;
-            text-transform: uppercase;
-            color: #B9BBBE;
-            font-weight: bold;
-            margin-bottom: 5px;
-            padding-left: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .channel-item {
-            padding: 8px 10px;
-            margin-bottom: 2px;
-            border-radius: 4px;
-            cursor: pointer;
-            color: #B9BBBE;
-            display: flex;
-            align-items: center;
-            font-size: 15px;
-            position: relative;
-        }
-
-        .channel-item:hover {
-            background-color: #35373C;
-            color: #DCDDDE;
-        }
-
-        .channel-item.active {
-            background-color: #3F4147;
-            color: white;
-        }
-
-        .channel-hash {
-            margin-right: 8px;
-            color: #72767D;
-            font-weight: bold;
-        }
-
-        .add-channel-btn {
-            background: none;
-            border: none;
-            color: #B9BBBE;
-            cursor: pointer;
-            font-size: 18px;
-            padding: 0 5px;
-        }
-        
-        .add-channel-btn:hover {
-            color: white;
-        }
-
-        /* --- Stealth Section --- */
-        .stealth-section {
-            padding: 10px 15px;
-            border-top: 1px solid #232428;
-            background-color: #2B2D31;
-        }
-
-        .stealth-input-group {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 5px;
-        }
-
-        .stealth-input {
+        .container {
             width: 100%;
-            background-color: #40444B;
-            border: none;
-            border-radius: 4px;
-            padding: 6px 8px;
-            color: white;
-            font-size: 12px;
-            outline: none;
-        }
-
-        .stealth-btn {
-            background-color: #5865F2;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 6px 10px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .stealth-btn:hover {
-            background-color: #4752C4;
-        }
-
-        /* --- Chat Area --- */
-        #chat-area {
-            flex-grow: 1;
+            max-width: 600px;
+            background-color: #2d2d2d;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            position: relative;
-            background-color: #313338; /* Fallback */
-            background-size: cover;
-            background-position: center;
+            height: 90vh;
         }
 
-        .chat-header {
-            height: 50px;
-            background-color: #3F4147;
-            border-bottom: 1px solid #232428;
+        .header {
+            background-color: #007bff;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            padding: 0 15px;
-            z-index: 10;
-        }
-
-        .chat-title {
-            font-weight: bold;
-            font-size: 16px;
-            display: flex;
             align-items: center;
         }
 
-        .header-buttons {
-            display: flex;
-            gap: 10px;
+        .user-info {
+            font-size: 0.9rem;
+            color: #e0e0e0;
         }
 
-        .icon-btn {
-            background: none;
-            border: none;
-            color: #B9BBBE;
-            cursor: pointer;
-            font-size: 18px;
-            padding: 5px;
-            border-radius: 4px;
-        }
-
-        .icon-btn:hover {
-            color: white;
-            background-color: rgba(255,255,255,0.1);
-        }
-
-        /* --- Messages --- */
         #messages {
-            flex-grow: 1;
+            flex: 1;
             overflow-y: auto;
-            padding: 20px;
+            padding: 15px;
             display: flex;
             flex-direction: column;
             gap: 10px;
-            z-index: 5;
         }
 
         .message {
-            max-width: 70%;
+            background-color: #3d3d3d;
             padding: 10px 15px;
-            border-radius: 8px;
-            background-color: rgba(64, 68, 75, 0.9);
-            backdrop-filter: blur(5px);
-            position: relative;
+            border-radius: 15px;
+            max-width: 80%;
             word-wrap: break-word;
         }
 
-        .message.self {
+        .message.sent {
+            background-color: #007bff;
             align-self: flex-end;
-            border-bottom-right-radius: 2px;
+            border-bottom-right-radius: 5px;
         }
 
-        .message.other {
+        .message.received {
+            background-color: #444;
             align-self: flex-start;
-            border-bottom-left-radius: 2px;
+            border-bottom-left-radius: 5px;
         }
 
-        .message-author {
-            font-size: 12px;
-            font-weight: bold;
-            margin-bottom: 4px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+        .sender-name {
+            font-size: 0.75rem;
+            color: #aaa;
+            margin-bottom: 3px;
         }
 
-        .mod-icon {
-            color: #FFD700; /* Gold */
-            font-size: 14px;
-        }
-
-        .message-text {
-            font-size: 14px;
-            line-height: 1.4;
-        }
-
-        .message-time {
-            font-size: 10px;
-            color: #72767D;
-            position: absolute;
-            bottom: 5px;
-            right: 10px;
-        }
-
-        /* Gradient Name Style */
-        .gradient-name {
-            background: linear-gradient(to right, #ff00cc, #333399);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            color: transparent;
-        }
-
-        /* --- Input Area --- */
         .input-area {
             padding: 15px;
-            background-color: #313338;
+            background-color: #252525;
             display: flex;
-            align-items: center;
             gap: 10px;
-            z-index: 10;
+            border-top: 1px solid #444;
         }
 
-        #msg-input {
-            flex-grow: 1;
-            background-color: #40444B;
-            border: none;
-            border-radius: 8px;
-            padding: 12px;
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border-radius: 20px;
+            border: 1px solid #555;
+            background-color: #333;
             color: white;
-            font-size: 14px;
             outline: none;
-            transition: border-color 0.2s;
         }
 
-        #msg-input.error {
-            border: 2px solid #ED4245;
-            color: #ED4245;
-        }
-
-        .input-icon-btn {
-            background: none;
+        button {
+            padding: 10px 20px;
+            border-radius: 20px;
             border: none;
-            color: #B9BBBE;
             cursor: pointer;
-            font-size: 20px;
-            padding: 5px;
+            font-weight: bold;
+            transition: background 0.2s;
         }
 
-        .input-icon-btn:hover {
+        #send-btn {
+            background-color: #007bff;
             color: white;
         }
 
-        /* --- Emoji Picker (Step 7) --- */
-        #emoji-picker-container {
-            position: absolute;
-            bottom: 60px; /* Floats nicely above input */
-            left: 10px;
-            z-index: 100; /* Below modals (2000) but above input (10) */
-            /* Ensure it doesn't overlap critical UI by being offset from edges */
+        #send-btn:hover {
+            background-color: #0056b3;
         }
 
-        /* --- Alerts --- */
-        .alert-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(0,0,0,0.9);
-            z-index: 1000;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+        #call-btn {
+            background-color: #28a745;
             color: white;
+            position: relative;
         }
 
-        .blinker-alert h1 { color: #ED4245; font-size: 4rem; animation: blink 1s infinite; }
-        .vape-alert h1 { color: #3BA55C; font-size: 4rem; }
-        
-        /* NEW: Cart Alert Styling (Green/Gold Theme) */
-        .cart-alert h1 { 
-            color: #F0B232; /* Gold */
-            font-size: 4rem; 
-            animation: cartPulse 1.5s infinite;
-            text-shadow: 0 0 10px #3BA55C, 0 0 20px #3BA55C; /* Green Glow */
-        }
-        .cart-alert h2 {
-            color: #3BA55C; /* Green Text */
-            font-size: 2rem;
-            margin-top: 10px;
+        #call-btn:hover {
+            background-color: #218838;
         }
 
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0; }
-            100% { opacity: 1; }
-        }
-
-        @keyframes cartPulse {
-            0% { transform: scale(1); text-shadow: 0 0 10px #3BA55C; }
-            50% { transform: scale(1.1); text-shadow: 0 0 30px #F0B232, 0 0 10px #3BA55C; }
-            100% { transform: scale(1); text-shadow: 0 0 10px #3BA55C; }
-        }
-
-        /* --- Stealth Layer --- */
-        #stealth-layer {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background-color: white;
-            z-index: 10000;
+        /* Call Modal Styles */
+        #call-modal {
             display: none;
-            flex-direction: column;
-        }
-
-        #stealth-frame {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            border: none;
-        }
-
-        .stealth-ui-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            background: rgba(255,255,255,0.1);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        
-        .stealth-top-bar {
-            background: #f0f0f0;
-            padding: 5px 10px;
-            font-size: 12px;
-            color: #333;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .stealth-content {
-            color: #333;
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-            padding: 20px;
-        }
-
-        /* --- Mod Tools & Settings --- */
-        .modal-panel {
-            position: absolute;
-            background-color: #2B2D31;
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            z-index: 100;
-            display: none;
-        }
-
-        #settings-panel {
-            top: 60px;
-            left: 10px;
-            width: 250px;
-        }
-
-        #mod-tools-panel {
-            top: 60px;
-            right: 10px;
-            width: 200px;
-        }
-
-        .setting-row {
-            margin-bottom: 10px;
-        }
-
-        .setting-label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 12px;
-            color: #B9BBBE;
-        }
-
-        .setting-input {
-            width: 100%;
-            background: #40444B;
-            border: none;
-            color: white;
-            padding: 8px;
-            border-radius: 4px;
-        }
-
-        .mod-btn {
-            display: block;
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 5px;
-            background: #40444B;
-            border: none;
-            color: white;
-            border-radius: 4px;
-            cursor: pointer;
-            text-align: left;
-        }
-
-        .mod-btn:hover { background: #5865F2; }
-
-        /* Close Button for Panels */
-        .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            color: #B9BBBE;
-            font-size: 16px;
-            cursor: pointer;
-            line-height: 1;
-        }
-        .close-btn:hover { color: white; }
-
-        /* --- Call Overlay --- */
-        #video-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #18191C;
-            z-index: 500;
-            display: none;
+            background-color: rgba(0,0,0,0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
             flex-direction: column;
         }
 
         #remote-video {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
+            width: 90%;
+            max-width: 600px;
+            background-color: #000;
+            border-radius: 10px;
+            margin-bottom: 20px;
         }
 
         #local-video {
             position: absolute;
             bottom: 20px;
             right: 20px;
-            width: 200px;
-            height: 150px;
-            background: #000;
-            border-radius: 8px;
-            object-fit: cover;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            z-index: 510;
-        }
-
-        .call-controls {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 10px;
-            z-index: 520;
-        }
-
-        .call-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .btn-hangup { background: #ED4245; color: white; }
-        .btn-mute { background: #40444B; color: white; }
-
-        /* --- In-Call Chat Box --- */
-        #in-call-chat {
-            position: absolute;
-            bottom: 80px;
-            left: 20px;
-            width: 300px;
+            width: 150px;
             height: 200px;
-            background: rgba(43, 45, 49, 0.9);
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            z-index: 510;
-            border: 1px solid #232428;
+            background-color: #333;
+            border-radius: 10px;
+            border: 2px solid #fff;
         }
 
-        #in-call-messages {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 10px;
-            font-size: 12px;
-        }
-
-        .in-call-msg {
-            margin-bottom: 5px;
-            word-wrap: break-word;
-        }
-
-        #in-call-input {
-            width: calc(100% - 20px);
-            margin: 10px;
-            background: #40444B;
-            border: none;
+        #end-call-btn {
+            background-color: #dc3545;
             color: white;
-            padding: 8px;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+        }
+
+        #status-msg {
+            margin-top: 10px;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #2d2d2d; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #555; 
             border-radius: 4px;
-            outline: none;
-        }
-
-        /* --- Modal Overlays (Rules, Channel Create, etc) --- */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background: #2B2D31;
-            padding: 20px;
-            border-radius: 8px;
-            width: 300px;
-            position: relative; /* For close button */
-        }
-
-        .modal-title {
-            margin-top: 0;
-            margin-bottom: 15px;
-        }
-
-        /* Scrollbar Styling */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #2B2D31; }
-        ::-webkit-scrollbar-thumb { background: #1A1B1E; border-radius: 4px; }
-
-        /* --- SMOKE EFFECT (FIXED) --- */
-        #smoke-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 999;
-            opacity: 0;
-            background: radial-gradient(circle at center, rgba(200,200,200,0.4) 0%, rgba(150,150,150,0.2) 40%, transparent 80%);
-            mix-blend-mode: screen;
-            filter: blur(20px);
-        }
-
-        .smoke-active {
-            animation: smokeDiffuse 4s ease-out forwards;
-        }
-
-        @keyframes smokeDiffuse {
-            0% {
-                opacity: 0;
-                transform: scale(0.5);
-                background: radial-gradient(circle at center, rgba(255,255,255,0.9) 0%, transparent 60%);
-            }
-            20% {
-                opacity: 0.8;
-                transform: scale(1.2);
-            }
-            50% {
-                opacity: 0.6;
-                transform: scale(1.5);
-                background: radial-gradient(circle at center, rgba(200,200,200,0.5) 0%, rgba(100,100,100,0.3) 50%, transparent 80%);
-            }
-            100% {
-                opacity: 0;
-                transform: scale(2);
-                background: radial-gradient(circle at center, rgba(150,150,150,0.2) 0%, transparent 90%);
-            }
-        }
-        
-        /* Connection Status Styles */
-        .status-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 5px;
-        }
-        .status-connecting { background-color: #F0B232; animation: pulse 1s infinite; }
-        .status-connected { background-color: #3BA55C; }
-        .status-failed { background-color: #ED4245; }
-        
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Smoke Overlay Element -->
-    <div id="smoke-overlay"></div>
-
-    <!-- Sidebar -->
-    <div id="sidebar">
-        <div class="sidebar-header">
-            <span>SchoolChat</span>
-        </div>
-
-        <div class="user-profile" onclick="toggleSettings()">
-            <div class="avatar" id="sidebar-avatar"></div>
-            <div class="username-display" id="sidebar-username">Loading...</div>
-        </div>
-
-        <!-- New Stealth Section -->
-        <div class="stealth-section">
-            <div style="font-size:11px; color:#B9BBBE; margin-bottom:5px; font-weight:bold;">STEALTH MODE</div>
-            <div class="stealth-input-group">
-                <input type="text" id="stealth-link-input" class="stealth-input" placeholder="Paste URL here...">
-            </div>
-            <button id="stealth-activate-btn" class="stealth-btn" style="width:100%">Go Stealth</button>
-        </div>
-
-        <div class="channels-section">
-            <div class="section-header">
-                <span>Channels</span>
-                <button class="add-channel-btn" onclick="openChannelModal()">+</button>
-            </div>
-            <div id="channels-container">
-                <!-- Channels will be injected here -->
-            </div>
+<div class="container">
+    <div class="header">
+        <span>School Chat</span>
+        <div class="user-info">
+            ID: <span id="my-peer-id">Generating...</span>
+            <button id="copy-id-btn" style="background:none; border:none; color:#ccc; font-size:0.8rem; cursor:pointer; padding:0;">[Copy]</button>
         </div>
     </div>
 
-    <!-- Chat Area -->
-    <div id="chat-area">
-        <div class="chat-header">
-            <div class="chat-title">
-                <span class="channel-hash">#</span><span id="current-chat-name">general</span>
-            </div>
-            <div class="header-buttons">
-                <button class="icon-btn" id="btn-call" title="Start Call">📞</button>
-                <button class="icon-btn" id="btn-blinker" title="Blinker Alert">⚠️</button>
-                <!-- Renamed to Vape -->
-                <button class="icon-btn" id="btn-vape" title="Vape Break">💨</button>
-                <!-- Added Cart Button -->
-                <button class="icon-btn" id="btn-cart" title="Cart Break">🛒</button>
-                <button class="icon-btn" id="btn-rules" title="View Rules">📜</button>
-                <button class="icon-btn" id="btn-mod" title="Mod Tools">🛡️</button>
-            </div>
-        </div>
-
-        <div id="messages">
-            <!-- Messages go here -->
-        </div>
-
-        <div class="input-area">
-            <!-- File upload removed as requested -->
-            <input type="text" id="msg-input" placeholder="Message #general" autocomplete="off" maxlength="1500">
-            <button class="input-icon-btn" id="emoji-trigger">😊</button>
+    <div id="messages">
+        <!-- Messages will appear here -->
+        <div class="message received">
+            <div class="sender-name">System</div>
+            Welcome! Enter your username below to start chatting.
         </div>
     </div>
 
-    <!-- Settings Panel -->
-    <div id="settings-panel" class="modal-panel">
-        <button class="close-btn" onclick="toggleSettings()">✕</button>
-        <div class="setting-row">
-            <label class="setting-label">Username</label>
-            <input type="text" id="setting-username" class="setting-input">
-        </div>
-        <div class="setting-row">
-            <label class="setting-label">Avatar URL</label>
-            <input type="text" id="setting-avatar" class="setting-input">
-        </div>
-        <div class="setting-row">
-            <label class="setting-label">Name Color</label>
-            <input type="color" id="setting-color" value="#ffffff">
-        </div>
-        <div class="setting-row">
-            <label class="setting-label">Gradient Name</label>
-            <input type="checkbox" id="setting-gradient">
-        </div>
-        <button class="stealth-btn" onclick="saveSettings()" style="width:100%">Save Changes</button>
+    <div class="input-area">
+        <input type="text" id="username-input" placeholder="Enter Username..." maxlength="15">
+        <input type="text" id="msg-input" placeholder="Type a message..." autocomplete="off">
+        <button id="send-btn">Send</button>
+        <button id="call-btn">📞 Call</button>
     </div>
+</div>
 
-    <!-- Mod Tools -->
-    <div id="mod-tools-panel" class="modal-panel">
-        <button class="close-btn" onclick="toggleModTools()">✕</button>
-        <button class="mod-btn" onclick="addModerator()">Add Moderator</button>
-        <button class="mod-btn" onclick="kickUser()">Kick User</button>
-        <button class="mod-btn" onclick="banUser()">Ban User</button>
-    </div>
+<!-- Call Interface Overlay -->
+<div id="call-modal">
+    <video id="remote-video" autoplay playsinline></video>
+    <video id="local-video" autoplay muted playsinline></video>
+    <p id="status-msg">Calling...</p>
+    <button id="end-call-btn">End Call</button>
+</div>
 
-    <!-- Alert Overlays -->
-    <div id="blinker-alert" class="alert-overlay blinker-alert">
-        <h1>BLINKER ALERT!</h1>
-        <p>Blinkers out in the hallway!</p>
-    </div>
+<script>
+   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBPC0x93NkRWCxMUA0c8xkS-jQa2IdbysI",
+  authDomain: "schoolchat-7f5a5.firebaseapp.com",
+  databaseURL: "https://schoolchat-7f5a5-default-rtdb.firebaseio.com",
+  projectId: "schoolchat-7f5a5",
+  storageBucket: "schoolchat-7f5a5.firebasestorage.app",
+  messagingSenderId: "752691397853",
+  appId: "1:752691397853:web:b4acd05e0259979edfc734",
+  measurementId: "G-QS6SVMF7FE"
+};
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
 
-    <div id="vape-alert" class="alert-overlay vape-alert">
-        <h1>VAPE BREAK!</h1>
-        <p>Vapers to the bathroom!</p>
-    </div>
+    // --- PEERJS CONFIGURATION ---
+    let peer = null;
+    let myPeerId = null;
+    let currentCall = null;
+    let localStream = null;
 
-    <!-- NEW: Cart Alert Overlay -->
-    <div id="cart-alert" class="alert-overlay cart-alert">
-        <h1>CART BREAK!</h1>
-        <h2>Everyone to the cafeteria!</h2>
-    </div>
+    // DOM Elements
+    const messagesDiv = document.getElementById('messages');
+    const msgInput = document.getElementById('msg-input');
+    const sendBtn = document.getElementById('send-btn');
+    const callBtn = document.getElementById('call-btn');
+    const endCallBtn = document.getElementById('end-call-btn');
+    const callModal = document.getElementById('call-modal');
+    const remoteVideo = document.getElementById('remote-video');
+    const localVideo = document.getElementById('local-video');
+    const statusMsg = document.getElementById('status-msg');
+    const myPeerIdSpan = document.getElementById('my-peer-id');
+    const copyIdBtn = document.getElementById('copy-id-btn');
+    const usernameInput = document.getElementById('username-input');
 
-    <!-- Stealth Layer -->
-    <div id="stealth-layer">
-        <iframe id="stealth-frame" src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1"></iframe>
-        <div class="stealth-ui-overlay">
-            <div class="stealth-top-bar">
-                <span>Mr. Anderson's Math Class</span>
-                <span>10:42 AM</span>
-            </div>
-            <div class="stealth-content">
-                <h3>Chapter 4: Derivatives</h3>
-                <p>Today we are going to discuss the fundamental theorem of calculus and how it applies to real-world problems.</p>
-                <p>Please open your textbooks to page 142.</p>
-            </div>
-        </div>
-    </div>
+    let currentUser = "";
 
-    <!-- Call Overlay -->
-    <div id="video-overlay">
-        <video id="remote-video" autoplay playsinline></video>
-        <video id="local-video" autoplay muted playsinline></video>
-        <div class="call-controls">
-            <button class="call-btn btn-mute" onclick="toggleMute()">🎤 Mute</button>
-            <button class="call-btn btn-hangup" onclick="endCall()">📞 Hang Up</button>
-        </div>
-        <div id="in-call-chat">
-            <div id="in-call-messages"></div>
-            <input type="text" id="in-call-input" placeholder="Type in call...">
-        </div>
-    </div>
+    // --- INITIALIZATION ---
+    
+    // Check if user has a username stored
+    const savedUser = localStorage.getItem('chat_username');
+    if (savedUser) {
+        usernameInput.value = savedUser;
+        currentUser = savedUser;
+        initChat();
+    } else {
+        usernameInput.focus();
+        usernameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                currentUser = usernameInput.value.trim();
+                if(currentUser) {
+                    localStorage.setItem('chat_username', currentUser);
+                    initChat();
+                }
+            }
+        });
+    }
 
-    <!-- Call Modal -->
-    <div id="call-modal" class="modal">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closeCallModal()">✕</button>
-            <h3 class="modal-title">Start Call</h3>
-            <div id="my-peer-id" style="margin-bottom: 10px; font-size: 12px;"></div>
-            
-            <!-- Connection Status Indicator -->
-            <div id="connection-status" style="margin-bottom: 10px; font-size: 12px; display: none;">
-                <span id="status-dot" class="status-indicator status-connecting"></span>
-                <span id="status-text">Connecting...</span>
-            </div>
-
-            <input type="text" id="room-id-input" class="setting-input" placeholder="Enter Room ID or Leave Empty to Create">
-            <button class="stealth-btn" onclick="createOrJoinRoom()" style="width:100%; margin-top:10px;">Connect</button>
-            <div id="room-info" style="margin-top: 10px; font-size: 12px;"></div>
-        </div>
-    </div>
-
-    <!-- Rules Modal -->
-    <div id="rules-modal" class="modal">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closeRulesModal()">✕</button>
-            <h3 class="modal-title">Channel Rules (#<span id="rules-channel-name"></span>)</h3>
-            <textarea id="rules-textarea" class="setting-input" rows="10"></textarea>
-            <button class="stealth-btn" onclick="saveRules()" style="width:100%; margin-top:10px;">Save Rules</button>
-        </div>
-    </div>
-
-    <!-- Dev Menu -->
-    <div id="dev-menu" style="display:none; position:absolute; background:#111; border:1px solid #00FF00; padding:10px; z-index:9999; color:#00FF00; font-family:monospace;">
-        <button onclick="deleteMessage()" style="background:#00FF00; color:#000; border:none; padding:5px; margin-bottom:5px;">Delete Message</button>
-        <button onclick="editMessage()" style="background:#00FF00; color:#000; border:none; padding:5px; margin-bottom:5px;">Edit Message</button>
-        <button onclick="showRawData()" style="background:#00FF00; color:#000; border:none; padding:5px;">View Data</button>
-    </div>
-
-    <!-- Emoji Picker Container -->
-    <div id="emoji-picker-container" style="position: absolute; bottom: 60px; left: 10px; z-index: 100;"></div>
-
-    <!-- Channel Creation Modal -->
-    <div id="channel-modal" class="modal">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closeChannelModal()">✕</button>
-            <h3 class="modal-title">Create Channel</h3>
-            <input type="text" id="new-channel-name" class="setting-input" placeholder="Channel Name (e.g., gaming)">
-            <button class="stealth-btn" onclick="createChannel()" style="width:100%; margin-top:10px;">Create</button>
-        </div>
-    </div>
-
-    <!-- Logout Button -->
-    <button class="stealth-btn" id="logout-btn" style="position: absolute; bottom: 10px; left: 10px; z-index: 30;">Log Out</button>
-
-    <script>
-        // --- Firebase Configuration ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyBPC0x93NkRWCxMUA0c8xkS-jQa2IdbysI",
-            authDomain: "schoolchat-7f5a5.firebaseapp.com",
-            databaseURL: "https://schoolchat-7f5a5-default-rtdb.firebaseio.com",
-            projectId: "schoolchat-7f5a5",
-            storageBucket: "schoolchat-7f5a5.firebasestorage.app",
-            messagingSenderId: "752691397853",
-            appId: "1:752691397853:web:b4acd05e0259979edfc734",
-            measurementId: "G-QS6SVMF7FE"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
-        // --- State Variables ---
-        let currentUser = null;
-        let currentChatId = "general";
-        let peer = null;
-        let myStream = null;
-        let activeRoomId = null;
-        let currentMsgId = null;
-        let emojiPicker = null;
-        let currentCall = null; // Track the active call object
-
-        // Robust ICE Configuration
-        const iceConfig = {
-            iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' },
-                { urls: 'stun:stun2.l.google.com:19302' },
-                { urls: 'stun:stun3.l.google.com:19302' },
-                { urls: 'stun:stun4.l.google.com:19302' }
-            ],
-            iceTransportPolicy: 'all', // Allow both direct and relayed connections
-            sdpSemantics: 'unified-plan' // More stable for modern browsers
-        };
-
-        // --- Initialization ---
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                currentUser = user;
-                loadUserData();
-                renderFriends();
-                listenToMessages();
-                checkForAlerts();
-                initEmojiPicker();
-                setupDevMode();
-                updateSidebarProfile();
-                loadStealthUrl(); // Step 6: Load last used stealth URL
-            } else {
-                window.location.href = "index.html";
+    function initChat() {
+        // Initialize PeerJS
+        // Using a reliable public server for better cross-network connectivity
+        peer = new Peer({
+            debug: 2,
+            config: {
+                'iceServers': [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:global.stun.twilio.com:3478' }
+                ]
             }
         });
 
-        // --- User Data Handling ---
-        function loadUserData() {
-            db.collection("users").doc(currentUser.uid).onSnapshot(doc => {
-                const data = doc.data();
-                if (!data) return;
-
-                document.getElementById("sidebar-username").textContent = data.username || "User";
-                document.getElementById("sidebar-avatar").style.backgroundImage = `url(${data.avatar || ''})`;
-                
-                // Apply settings
-                const usernameEl = document.getElementById("sidebar-username");
-                if (data.gradient && data.gradient === true) {
-                    usernameEl.classList.add("gradient-name");
-                } else {
-                    usernameEl.classList.remove("gradient-name");
-                }
-                
-                if (data.color) {
-                    usernameEl.style.color = data.color;
-                }
-
-                // Set chat background if set in profile
-                if (data.chatBackground) {
-                    document.getElementById("chat-area").style.backgroundImage = `url(${data.chatBackground})`;
-                } else {
-                    document.getElementById("chat-area").style.backgroundImage = "none";
-                }
-            });
-        }
-
-        function updateSidebarProfile() {
-            if(!currentUser) return;
-            db.collection("users").doc(currentUser.uid).get().then(doc => {
-                const data = doc.data();
-                document.getElementById("setting-username").value = data?.username || "";
-                document.getElementById("setting-avatar").value = data?.avatar || "";
-                document.getElementById("setting-color").value = data?.color || "#ffffff";
-                document.getElementById("setting-gradient").checked = data?.gradient || false;
-            });
-        }
-
-        // --- Step 6: Stealth URL Persistence ---
-        function loadStealthUrl() {
-            const savedUrl = localStorage.getItem('lastStealthUrl');
-            if (savedUrl) {
-                document.getElementById("stealth-link-input").value = savedUrl;
-            }
-        }
-
-        // Save URL on every keystroke
-        document.getElementById("stealth-link-input").addEventListener("input", (e) => {
-            localStorage.setItem('lastStealthUrl', e.target.value);
+        peer.on('open', (id) => {
+            myPeerId = id;
+            myPeerIdSpan.innerText = id;
+            console.log('PeerJS connected with ID: ' + id);
+            
+            // Send online status to Firebase
+            db.collection('users').doc(id).set({
+                username: currentUser,
+                lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+                isOnline: true
+            }).catch(err => console.error("Error updating online status:", err));
         });
 
-        // --- Settings Logic ---
-        function toggleSettings() {
-            const panel = document.getElementById("settings-panel");
-            panel.style.display = panel.style.display === "block" ? "none" : "block";
-        }
+        peer.on('error', (err) => {
+            console.error('PeerJS Error:', err);
+            addSystemMessage(`Connection error: ${err.type}`);
+        });
 
-        function saveSettings() {
-            const username = document.getElementById("setting-username").value;
-            const avatar = document.getElementById("setting-avatar").value;
-            const color = document.getElementById("setting-color").value;
-            const gradient = document.getElementById("setting-gradient").checked;
-
-            db.collection("users").doc(currentUser.uid).update({
-                username: username,
-                avatar: avatar,
-                color: color,
-                gradient: gradient
-            }).then(() => {
-                toggleSettings();
-            });
-        }
-
-        // --- Lobby / Background Setup (Simple Implementation) ---
-        // Assuming there's a way to set background via settings or a lobby screen not fully shown here
-        // If you have a specific lobby input, bind it to 'chatBackground' in user profile
-
-        // --- Messaging System ---
-        function sendMessage() {
-            const input = document.getElementById("msg-input");
-            const text = input.value.trim();
-            
-            if (!text) return;
-
-            const messageData = {
-                senderId: currentUser.uid,
-                text: text,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                chatId: currentChatId
-            };
-
-            db.collection("chats").doc(currentChatId).collection("messages").add(messageData);
-            input.value = "";
-        }
-
-        function listenToMessages() {
-            db.collection("chats").doc(currentChatId).collection("messages")
-                .orderBy("timestamp", "asc")
-                .onSnapshot(snapshot => {
-                    const container = document.getElementById("messages");
-                    container.innerHTML = ""; // Clear and re-render (simple approach)
+        // Handle incoming calls
+        peer.on('call', (call) => {
+            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                .then((stream) => {
+                    localStream = stream;
+                    localVideo.srcObject = stream;
+                    localVideo.play();
                     
-                    snapshot.forEach(doc => {
-                        const msg = doc.data();
-                        const div = document.createElement("div");
-                        div.className = `message ${msg.senderId === currentUser.uid ? 'self' : 'other'}`;
-                        div.dataset.id = doc.id;
-
-                        // Get username/color/mod status for other users
-                        if (msg.senderId !== currentUser.uid) {
-                            db.collection("users").doc(msg.senderId).get().then(userDoc => {
-                                const userData = userDoc.data();
-                                const author = document.createElement("div");
-                                author.className = "message-author";
-                                
-                                // Add Crown Icon if Mod
-                                if (userData?.isModerator) {
-                                    const crown = document.createElement("span");
-                                    crown.className = "mod-icon";
-                                    crown.textContent = "👑";
-                                    author.appendChild(crown);
-                                }
-
-                                author.textContent = userData?.username || "Unknown";
-                                if(userData?.gradient) author.classList.add("gradient-name");
-                                if(userData?.color) author.style.color = userData.color;
-                                div.prepend(author);
-                            });
-                        } else {
-                            const author = document.createElement("div");
-                            author.className = "message-author";
-                            
-                            // Check if self is mod
-                            if (currentUser?.isModerator) {
-                                const crown = document.createElement("span");
-                                crown.className = "mod-icon";
-                                crown.textContent = "👑";
-                                author.appendChild(crown);
-                            }
-                            
-                            author.textContent = "You";
-                            div.prepend(author);
-                        }
-
-                        // Handle Links
-                        const textDiv = document.createElement("div");
-                        textDiv.className = "message-text";
-                        
-                        if (msg.text.startsWith("http")) {
-                            // Simple Link Embed
-                            const embed = document.createElement("div");
-                            embed.style.padding = "10px";
-                            embed.style.borderLeft = "4px solid #5865F2";
-                            embed.style.background = "#2B2D31";
-                            embed.innerHTML = `<strong>Link:</strong> <a href="${msg.text}" target="_blank">${msg.text}</a>`;
-                            textDiv.appendChild(embed);
-                        } else {
-                            textDiv.textContent = msg.text;
-                        }
-                        div.appendChild(textDiv);
-
-                        const time = document.createElement("div");
-                        time.className = "message-time";
-                        const date = msg.timestamp ? new Date(msg.timestamp.toMillis()) : new Date();
-                        time.textContent = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                        div.appendChild(time);
-
-                        container.appendChild(div);
-
-                        // IF IN CALL, ADD TO IN-CALL CHAT TOO
-                        if (document.getElementById("video-overlay").style.display === "flex") {
-                            const inCallMsg = document.createElement("div");
-                            inCallMsg.className = "in-call-msg";
-                            
-                            // Fetch username for display in in-call chat
-                            let displayName = msg.senderId === currentUser.uid ? 'You' : 'User';
-                            db.collection("users").doc(msg.senderId).get().then(d => {
-                                if(d.exists) displayName = d.data()?.username || 'User';
-                                inCallMsg.innerHTML = `<strong>${displayName}:</strong> ${msg.text}`;
-                                inCallMessages.appendChild(inCallMsg);
-                                inCallMessages.scrollTop = inCallMessages.scrollHeight;
-                            });
-                        }
-                    });
-                    container.scrollTop = container.scrollHeight;
-                });
-        }
-
-        // --- Friends & Social ---
-        function addFriend() {
-            const email = prompt("Enter friend's email or username prefix:");
-            if (!email) return;
-
-            db.collection("users").where("email", "==", email).get().then(querySnapshot => {
-                if (querySnapshot.empty) {
-                    // Try username prefix
-                    db.collection("users").where("username", ">=", email).limit(1).get().then(uSnap => {
-                         if(uSnap.empty) alert("User not found");
-                         else {
-                             const friendId = uSnap.docs[0].id;
-                             addFriendRelation(friendId);
-                         }
-                    });
-                } else {
-                    const friendId = querySnapshot.docs[0].id;
-                    addFriendRelation(friendId);
-                }
-            });
-        }
-
-        function addFriendRelation(friendId) {
-            if (friendId === currentUser.uid) return;
-            
-            db.collection("users").doc(currentUser.uid).update({
-                friends: firebase.firestore.FieldValue.arrayUnion(friendId)
-            });
-        }
-
-        function renderFriends() {
-            if (!currentUser) return;
-            db.collection("users").doc(currentUser.uid).get().then(doc => {
-                const data = doc.data();
-                const friends = data?.friends || [];
-                const container = document.getElementById("channels-container"); // Reusing channels container for demo, or create specific one
-                container.innerHTML = ""; 
-
-                // Add Default General Channel
-                const generalItem = document.createElement("div");
-                generalItem.className = "channel-item active";
-                generalItem.innerHTML = `<span class="channel-hash">#</span> general`;
-                generalItem.onclick = () => switchChat("general");
-                container.appendChild(generalItem);
-
-                friends.forEach(fid => {
-                    db.collection("users").doc(fid).get().then(userDoc => {
-                        const uData = userDoc.data();
-                        const item = document.createElement("div");
-                        item.className = "channel-item";
-                        item.innerHTML = `<div class="avatar" style="width:24px;height:24px;margin-right:5px;background-image:url('${uData?.avatar||''}')"></div> ${uData?.username || "User"}`;
-                        item.onclick = () => switchChat(`dm-${fid}`);
-                        container.appendChild(item);
-                    });
-                });
-            });
-        }
-
-        function switchChat(chatId) {
-            currentChatId = chatId;
-            document.getElementById("current-chat-name").textContent = chatId.replace("dm-", "");
-            document.getElementById("msg-input").placeholder = `Message #${chatId.replace("dm-", "")}`;
-            
-            // Update active state in sidebar
-            document.querySelectorAll(".channel-item").forEach(el => el.classList.remove("active"));
-            // Simple highlight logic would go here based on chatId match
-        }
-
-        // --- Alert System ---
-        function triggerAlert(type) {
-            db.collection("alerts").add({
-                type: type,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        }
-
-        function checkForAlerts() {
-            db.collection("alerts").orderBy("timestamp", "desc").limit(1).onSnapshot(snapshot => {
-                if (!snapshot.empty) {
-                    const alert = snapshot.docs[0].data();
-                    const now = new Date();
-                    const alertTime = alert.timestamp ? new Date(alert.timestamp.toMillis()) : now;
+                    call.answer(stream); // Answer the call with our A/V stream
                     
-                    // Only show if within last 5 seconds
-                    if ((now - alertTime) < 5000) {
-                        showSpecificAlert(alert.type);
-                    }
-                }
-            });
-        }
+                    call.on('stream', (remoteStream) => {
+                        remoteVideo.srcObject = remoteStream;
+                        remoteVideo.play();
+                        statusMsg.innerText = "Connected";
+                    });
 
-        function showSpecificAlert(type) {
-            // Hide others first
-            document.querySelectorAll('.alert-overlay').forEach(el => el.style.display = 'none');
-            
-            let overlayId = '';
-            if (type === 'blinker') overlayId = 'blinker-alert';
-            else if (type === 'vape') overlayId = 'vape-alert';
-            else if (type === 'cart') overlayId = 'cart-alert';
-
-            if (overlayId) {
-                const overlay = document.getElementById(overlayId);
-                overlay.style.display = 'flex';
-                
-                // Trigger smoke
-                triggerSmoke();
-
-                setTimeout(() => {
-                    overlay.style.display = 'none';
-                }, 3000);
-            }
-        }
-
-        // --- Smoke Effect ---
-        function triggerSmoke() {
-            const smoke = document.getElementById("smoke-overlay");
-            smoke.classList.remove("smoke-active");
-            void smoke.offsetWidth; // Trigger reflow
-            smoke.classList.add("smoke-active");
-        }
-
-        // --- Event Listeners for Buttons ---
-        document.getElementById("btn-blinker").onclick = () => triggerAlert('blinker');
-        document.getElementById("btn-vape").onclick = () => triggerAlert('vape');
-        document.getElementById("btn-cart").onclick = () => triggerAlert('cart');
-
-        // --- Stealth Mode ---
-        document.addEventListener("keydown", e => {
-            if (e.shiftKey && e.code === "CapsLock") {
-                const stealth = document.getElementById("stealth-layer");
-                const isVisible = stealth.style.display === "flex";
-                stealth.style.display = isVisible ? "none" : "flex";
-                if (!isVisible) {
-                    // Reload iframe to ensure video starts fresh
-                    const frame = document.getElementById("stealth-frame");
-                    frame.src = frame.src; 
-                }
-            }
+                    call.on('close', () => {
+                        endCall();
+                    });
+                })
+                .catch((err) => {
+                    console.error('Failed to get local stream', err);
+                    alert("Please allow camera/microphone access to make/receive calls.");
+                });
         });
 
-        document.getElementById("stealth-activate-btn").onclick = () => {
-            const url = document.getElementById("stealth-link-input").value;
-            if (url) {
-                document.getElementById("stealth-frame").src = url;
-                document.getElementById("stealth-layer").style.display = "flex";
-            }
-        };
-
-        // --- Video Calls (PeerJS) ---
-        function initPeer() {
-            if (peer) return;
-            peer = new Peer(undefined, iceConfig);
-            
-            peer.on('open', id => {
-                document.getElementById("my-peer-id").textContent = "Your ID: " + id;
-            });
-
-            peer.on('call', call => {
-                updateStatus('connecting');
-                navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-                    .then(stream => {
-                        myStream = stream;
-                        document.getElementById("local-video").srcObject = stream;
-                        call.answer(stream);
-                        call.on('stream', remoteStream => {
-                            document.getElementById("remote-video").srcObject = remoteStream;
-                            document.getElementById("video-overlay").style.display = "flex";
-                            updateStatus('connected');
-                        });
-                        call.on('close', endCall);
-                    })
-                    .catch(err => {
-                        console.error("Failed to get local stream", err);
-                        updateStatus('failed');
-                        alert("Could not start camera/mic.");
-                    });
-            });
-            
-            peer.on('disconnected', () => {
-                console.log("Disconnected from PeerJS server");
-                updateStatus('failed');
-            });
-            
-            peer.on('error', (err) => {
-                console.error("PeerJS Error:", err);
-                updateStatus('failed');
-                alert("Connection error: " + err.type);
-            });
-        }
-
-        function updateStatus(status) {
-            const dot = document.getElementById("status-dot");
-            const text = document.getElementById("status-text");
-            const container = document.getElementById("connection-status");
-            
-            container.style.display = "block";
-            dot.className = "status-indicator"; // Reset classes
-            
-            if (status === 'connecting') {
-                dot.classList.add("status-connecting");
-                text.textContent = "Connecting...";
-            } else if (status === 'connected') {
-                dot.classList.add("status-connected");
-                text.textContent = "Connected";
-            } else if (status === 'failed') {
-                dot.classList.add("status-failed");
-                text.textContent = "Failed";
-            }
-        }
-
-        document.getElementById("btn-call").onclick = () => {
-            initPeer();
-            document.getElementById("call-modal").style.display = "flex";
-        };
-
-        function createOrJoinRoom() {
-            const roomId = document.getElementById("room-id-input").value || Math.random().toString(36).substr(2, 9);
-            document.getElementById("room-info").textContent = "Connecting to room: " + roomId;
-            updateStatus('connecting');
-            
-            // We assume the user wants to call someone who has this room ID
-            // Note: This is a simplified connection. Usually you'd map Room IDs to Peer IDs in Firestore
-            // Here we just try to call the Peer directly if they are online and using that ID
-            
-            if(peer) {
-                navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-                    .then(stream => {
-                        myStream = stream;
-                        document.getElementById("local-video").srcObject = stream;
-                        
-                        // Wait a brief moment for ICE gathering to start
-                        setTimeout(() => {
-                            const call = peer.call(roomId, stream);
-                            currentCall = call; // Store reference
-                            
-                            call.on('stream', remoteStream => {
-                                document.getElementById("remote-video").srcObject = remoteStream;
-                                document.getElementById("video-overlay").style.display = "flex";
-                                updateStatus('connected');
-                            });
-                            
-                            call.on('close', () => {
-                                endCall();
-                            });
-                            
-                            call.on('error', (err) => {
-                                console.error("Call Error:", err);
-                                updateStatus('failed');
-                                alert("Call failed: " + err.type);
-                            });
-                            
-                            // Listen for ICE connection state changes
-                            call.on('iceconnectionstatechange', () => {
-                                if (call.peerConnection.iceConnectionState === 'connected' || call.peerConnection.iceConnectionState === 'completed') {
-                                    updateStatus('connected');
-                                } else if (call.peerConnection.iceConnectionState === 'failed') {
-                                    updateStatus('failed');
-                                }
-                            });
-                        }, 500); // Small delay to allow ICE candidates to gather
-                    })
-                    .catch(err => {
-                        console.error("Failed to get local stream", err);
-                        updateStatus('failed');
-                        alert("Could not start camera/mic.");
-                    });
-            }
-        }
-
-        function endCall() {
-            document.getElementById("video-overlay").style.display = "none";
-            if (myStream) {
-                myStream.getTracks().forEach(track => track.stop());
-                myStream = null;
-            }
-            if (currentCall) {
-                currentCall.close();
-                currentCall = null;
-            }
-            if (peer) {
-                peer.disconnect();
-                peer = null;
-            }
-            document.getElementById("call-modal").style.display = "none";
-            updateStatus('failed'); // Reset status
-            setTimeout(() => {
-                document.getElementById("connection-status").style.display = "none";
-            }, 2000);
-        }
-
-        function toggleMute() {
-            if (myStream) {
-                const audioTrack = myStream.getAudioTracks()[0];
-                audioTrack.enabled = !audioTrack.enabled;
-                document.querySelector(".btn-mute").textContent = audioTrack.enabled ? "🎤 Mute" : "🔊 Unmute";
-            }
-        }
-
-        function closeCallModal() {
-            document.getElementById("call-modal").style.display = "none";
-        }
-
-        // --- In-Call Chat Integration ---
-        const inCallInput = document.getElementById("in-call-input");
-        const inCallMessages = document.getElementById("in-call-messages");
-
-        inCallInput.addEventListener("keypress", (e) => {
-            if (e.key === "Enter") {
-                const text = inCallInput.value.trim();
-                if (text) {
-                    // Send to main chat
-                    db.collection("chats").doc(currentChatId).collection("messages").add({
-                        senderId: currentUser.uid,
-                        text: text,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                        chatId: currentChatId
-                    });
-                    inCallInput.value = "";
+        // Listen for chat messages from Firestore
+        db.collection('messages').orderBy('timestamp', 'asc').onSnapshot((snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === "added") {
+                    const data = change.doc.data();
+                    renderMessage(data);
                 }
-            }
+            });
+        });
+    }
+
+    // --- CHAT FUNCTIONS ---
+
+    function renderMessage(data) {
+        const msgDiv = document.createElement('div');
+        msgDiv.classList.add('message');
+        
+        // Determine if sent or received based on username matching
+        if (data.username === currentUser) {
+            msgDiv.classList.add('sent');
+        } else {
+            msgDiv.classList.add('received');
+        }
+
+        const nameDiv = document.createElement('div');
+        nameDiv.classList.add('sender-name');
+        nameDiv.innerText = data.username || 'Anonymous';
+
+        const textDiv = document.createElement('div');
+        textDiv.innerText = data.text;
+
+        msgDiv.appendChild(nameDiv);
+        msgDiv.appendChild(textDiv);
+        messagesDiv.appendChild(msgDiv);
+        
+        // Scroll to bottom
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function addSystemMessage(text) {
+        const msgDiv = document.createElement('div');
+        msgDiv.classList.add('message', 'received');
+        msgDiv.style.backgroundColor = '#555';
+        msgDiv.style.fontStyle = 'italic';
+        msgDiv.innerText = `[System] ${text}`;
+        messagesDiv.appendChild(msgDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function sendMessage() {
+        const text = msgInput.value.trim();
+        if (!text) return;
+
+        // Save to Firestore
+        db.collection('messages').add({
+            username: currentUser,
+            text: text,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }).catch((err) => {
+            console.error("Error sending message:", err);
+            addSystemMessage("Failed to send message. Check connection.");
         });
 
-        // --- Rules System ---
-        function openRulesModal() {
-            document.getElementById("rules-modal").style.display = "flex";
-            document.getElementById("rules-channel-name").textContent = currentChatId.replace("dm-", "");
-            
-            // Load existing rules
-            db.collection("chats").doc(currentChatId).get().then(doc => {
-                if (doc.exists) {
-                    document.getElementById("rules-textarea").value = doc.data().rules || "No rules set.";
-                } else {
-                    // Default rules if none exist
-                    const defaultRules = "1. Be respectful.\n2. No spamming.\n3. Keep it clean.";
-                    document.getElementById("rules-textarea").value = defaultRules;
-                }
-            });
+        msgInput.value = '';
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    msgInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+
+    // --- CALL FUNCTIONS ---
+
+    callBtn.addEventListener('click', () => {
+        const targetId = prompt("Enter friend's Peer ID to call:");
+        if (!targetId) return;
+
+        if (!peer) {
+            alert("Chat not initialized yet. Wait a moment.");
+            return;
         }
 
-        function saveRules() {
-            const rules = document.getElementById("rules-textarea").value;
-            db.collection("chats").doc(currentChatId).set({ rules }, { merge: true });
-            closeRulesModal();
-        }
+        statusMsg.innerText = "Calling...";
+        callModal.style.display = 'flex';
 
-        function closeRulesModal() {
-            document.getElementById("rules-modal").style.display = "none";
-        }
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then((stream) => {
+                localStream = stream;
+                localVideo.srcObject = stream;
+                localVideo.play();
 
-        document.getElementById("btn-rules").onclick = openRulesModal;
-
-        // --- Mod Tools ---
-        function toggleModTools() {
-            const panel = document.getElementById("mod-tools-panel");
-            panel.style.display = panel.style.display === "block" ? "none" : "block";
-        }
-
-        // FIXED: Add Moderator Logic
-        async function addModerator() {
-            const uid = prompt("Enter User ID to make Moderator:");
-            if (!uid) return;
-
-            try {
-                const userRef = db.collection("users").doc(uid);
-                const doc = await userRef.get();
-
-                if (doc.exists) {
-                    await userRef.update({
-                        isModerator: true
-                    });
-                    alert(`${doc.data().username || uid} is now a moderator! 👑`);
-                } else {
-                    alert("User ID not found.");
-                }
-            } catch (error) {
-                console.error("Error adding moderator:", error);
-                alert("An error occurred while updating the user.");
-            }
-        }
-
-        function kickUser() {
-            const uid = prompt("Enter User ID to Kick:");
-            if (uid) {
-                // Simple kick: remove from friends or ban from chat
-                // For now, just log it
-                alert(`Kicked user ${uid}`);
-            }
-        }
-
-        function banUser() {
-            const uid = prompt("Enter User ID to Ban:");
-            if (uid) {
-                db.collection("users").doc(uid).update({
-                    banned: true
-                });
-                alert(`Banned user ${uid}`);
-            }
-        }
-
-        document.getElementById("btn-mod").onclick = toggleModTools;
-
-        // --- Emoji Picker ---
-        function initEmojiPicker() {
-            const pickerButton = document.getElementById("emoji-trigger");
-            const container = document.getElementById("emoji-picker-container");
-            
-            pickerButton.onclick = () => {
-                if (!emojiPicker) {
-                    emojiPicker = new EmojiButton({
-                        theme: 'auto',
-                        position: 'top-start'
-                    });
-                    emojiPicker.init(container);
-                }
+                const call = peer.call(targetId, stream);
                 
-                emojiPicker.togglePicker(pickerButton);
-                
-                emojiPicker.on('emoji', selection => {
-                    const input = document.getElementById("msg-input");
-                    input.value += selection.emoji;
-                    input.focus();
+                call.on('stream', (remoteStream) => {
+                    remoteVideo.srcObject = remoteStream;
+                    remoteVideo.play();
+                    statusMsg.innerText = "Connected";
                 });
-            };
-        }
 
-        // --- Dev Mode ---
-        function setupDevMode() {
-            document.addEventListener("keydown", e => {
-                if (e.shiftKey && e.key === "Enter") {
-                    const menu = document.getElementById("dev-menu");
-                    menu.style.display = "block";
-                    menu.style.left = `${e.clientX}px`;
-                    menu.style.top = `${e.clientY}px`;
-                }
-            });
-
-            document.addEventListener("click", e => {
-                const msg = e.target.closest(".message");
-                if (msg) {
-                    currentMsgId = msg.dataset.id;
-                }
-            });
-        }
-
-        function deleteMessage() {
-            if (currentMsgId) {
-                db.collection("chats").doc(currentChatId).collection("messages").doc(currentMsgId).delete();
-                alert("Message deleted.");
-            }
-        }
-
-        function editMessage() {
-            if (currentMsgId) {
-                const newText = prompt("Enter new message text:");
-                if (newText !== null) {
-                    db.collection("chats").doc(currentChatId).collection("messages").doc(currentMsgId).update({
-                        text: newText
-                    });
-                }
-            }
-        }
-
-        function showRawData() {
-            if (currentMsgId) {
-                db.collection("chats").doc(currentChatId).collection("messages").doc(currentMsgId).get().then(doc => {
-                    alert(JSON.stringify(doc.data(), null, 2));
+                call.on('close', () => {
+                    endCall();
                 });
-            }
-        }
 
-        // --- Channel Management ---
-        function openChannelModal() {
-            document.getElementById("channel-modal").style.display = "flex";
-        }
-
-        function closeChannelModal() {
-            document.getElementById("channel-modal").style.display = "none";
-        }
-
-        function createChannel() {
-            const name = document.getElementById("new-channel-name").value.trim();
-            if (name) {
-                const channelId = name.toLowerCase().replace(/\s+/g, "-");
-                db.collection("chats").doc(channelId).set({
-                    name: name,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                call.on('error', (err) => {
+                    statusMsg.innerText = "Call failed: " + err.type;
+                    setTimeout(endCall, 2000);
                 });
-                closeChannelModal();
-                // Refresh channels
-                renderFriends(); // Re-using renderFriends to add channel, or create specific renderChannels
-                // For now, let's just add it to the list manually
-                const container = document.getElementById("channels-container");
-                const item = document.createElement("div");
-                item.className = "channel-item";
-                item.innerHTML = `<span class="channel-hash">#</span> ${name}`;
-                item.onclick = () => switchChat(channelId);
-                container.appendChild(item);
-                switchChat(channelId);
-            }
-        }
 
-        // --- Logout ---
-        document.getElementById("logout-btn").onclick = () => {
-            auth.signOut().then(() => {
-                window.location.href = "index.html";
+                currentCall = call;
+            })
+            .catch((err) => {
+                console.error('Error getting media stream:', err);
+                alert("Could not access camera/mic.");
+                callModal.style.display = 'none';
             });
-        };
+    });
 
-        // --- Input Submit Listener ---
-        document.getElementById("msg-input").addEventListener("keypress", (e) => {
-            if (e.key === "Enter") {
-                sendMessage();
-            }
-        });
+    function endCall() {
+        if (currentCall) {
+            currentCall.close();
+            currentCall = null;
+        }
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+            localStream = null;
+        }
+        localVideo.srcObject = null;
+        remoteVideo.srcObject = null;
+        callModal.style.display = 'none';
+        statusMsg.innerText = "Call ended";
+    }
 
-    </script>
+    endCallBtn.addEventListener('click', endCall);
+
+    // Copy ID functionality
+    copyIdBtn.addEventListener('click', () => {
+        if(myPeerId) {
+            navigator.clipboard.writeText(myPeerId).then(() => {
+                const originalText = copyIdBtn.innerText;
+                copyIdBtn.innerText = "Copied!";
+                setTimeout(() => copyIdBtn.innerText = originalText, 2000);
+            });
+        }
+    });
+
+</script>
+
 </body>
 </html>
