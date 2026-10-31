@@ -2,101 +2,40 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SchoolChat - Login</title>
-
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
   <style>
     * { box-sizing: border-box; }
-
     body {
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background: #313338;
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 16px;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: #313338; color: white; display: flex;
+      justify-content: center; align-items: center;
+      min-height: 100vh; margin: 0; padding: 16px;
     }
-
     .container {
-      background: #383A40;
-      padding: 30px;
-      border-radius: 12px;
-      width: min(380px, 100%);
-      box-shadow: 0 10px 25px rgba(0,0,0,.5);
+      background: #383A40; padding: 30px; border-radius: 12px;
+      width: min(380px, 100%); box-shadow: 0 10px 25px #0008;
       text-align: center;
     }
-
-    h2 { margin: 0 0 20px; font-size: 24px; }
-
+    h2 { margin: 0 0 18px; }
     input {
-      width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      border-radius: 6px;
-      border: none;
-      background: #1E1F22;
-      color: white;
-      font-size: 14px;
+      width: 100%; padding: 12px; margin: 8px 0; border: 0;
+      border-radius: 6px; background: #1E1F22; color: white;
     }
-
-    input::placeholder { color: #A0A3A8; }
-
     button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 14px;
+      width: 100%; padding: 12px; margin-top: 10px;
+      border: 0; border-radius: 6px; cursor: pointer; font-weight: bold;
     }
-
-    button:hover { opacity: .9; }
-    button:disabled { opacity: .5; cursor: not-allowed; }
-
-    .btn-google {
-      background: white;
-      color: #444;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .btn-primary { background: #5865F2; color: white; }
-    .toggle-btn { background: transparent; color: #00AFF4; }
-
-    .preview-img {
-      width: 100%;
-      height: 100px;
-      object-fit: cover;
-      border-radius: 6px;
-      margin-top: 5px;
-      background: #2B2D31;
-    }
-
-    #error-msg {
-      color: #ed4245;
-      font-size: 13px;
-      margin-bottom: 10px;
-      min-height: 18px;
-      overflow-wrap: anywhere;
-    }
-
-    .divider {
-      margin: 20px 0;
-      color: #aaa;
-      font-size: 12px;
-      text-transform: uppercase;
-    }
+    button:disabled { opacity: .55; cursor: wait; }
+    .primary { background: #5865F2; color: white; }
+    .google { background: white; color: #444; }
+    .toggle { background: transparent; color: #00AFF4; }
+    #error-msg { min-height: 20px; color: #ED4245; font-size: 13px; overflow-wrap: anywhere; }
+    #lobby-preview { width: 100%; height: 100px; object-fit: cover; border-radius: 6px; }
+    .divider { margin: 16px 0; color: #aaa; font-size: 12px; }
   </style>
 </head>
 <body>
@@ -104,42 +43,18 @@
     <h2 id="form-title">Login to SchoolChat</h2>
     <div id="error-msg" role="alert" aria-live="polite"></div>
 
-    <input
-      type="url"
-      id="lobby-bg-url"
-      placeholder="Optional chat background image URL"
-      autocomplete="url"
-    >
-    <img id="lobby-preview" class="preview-img" alt="Background preview" hidden>
+    <input id="lobby-bg-url" type="url" placeholder="Optional chat background image URL">
+    <img id="lobby-preview" alt="Background preview" hidden>
 
-    <button class="btn-google" id="google-btn" type="button">
-      <img
-        src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-        width="18"
-        alt=""
-      >
-      Continue with Google
-    </button>
-
+    <button class="google" id="google-btn" type="button">Continue with Google</button>
     <div class="divider">or use email</div>
 
-    <input
-      type="text"
-      id="username"
-      placeholder="Choose a username (registration only)"
-      autocomplete="username"
-      maxlength="30"
-    >
-    <input type="email" id="email" placeholder="Email address" autocomplete="email">
-    <input
-      type="password"
-      id="password"
-      placeholder="Password"
-      autocomplete="current-password"
-    >
+    <input id="username" type="text" maxlength="30" placeholder="Username (for registration)" autocomplete="username">
+    <input id="email" type="email" placeholder="Email address" autocomplete="email">
+    <input id="password" type="password" placeholder="Password" autocomplete="current-password">
 
-    <button id="action-btn" class="btn-primary" type="button">Login</button>
-    <button id="toggle-btn" class="toggle-btn" type="button">Create an account</button>
+    <button class="primary" id="action-btn" type="button">Login</button>
+    <button class="toggle" id="toggle-btn" type="button">Create an account</button>
   </main>
 
   <script>
@@ -158,81 +73,62 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    let isLoginMode = true;
+    const $ = id => document.getElementById(id);
+    let loginMode = true;
     let busy = false;
 
-    const errorEl = document.getElementById("error-msg");
-    const actionBtn = document.getElementById("action-btn");
-    const toggleBtn = document.getElementById("toggle-btn");
-    const googleBtn = document.getElementById("google-btn");
-    const bgInput = document.getElementById("lobby-bg-url");
-    const preview = document.getElementById("lobby-preview");
-
-    function showError(message) {
-      errorEl.textContent = message;
-    }
+    function showError(message) { $("error-msg").textContent = message; }
 
     function setBusy(value) {
       busy = value;
-      actionBtn.disabled = value;
-      toggleBtn.disabled = value;
-      googleBtn.disabled = value;
+      $("action-btn").disabled = value;
+      $("toggle-btn").disabled = value;
+      $("google-btn").disabled = value;
     }
 
-    function updateModeUI() {
-      document.getElementById("form-title").textContent =
-        isLoginMode ? "Login to SchoolChat" : "Create Account";
-      actionBtn.textContent = isLoginMode ? "Login" : "Register";
-      toggleBtn.textContent = isLoginMode
-        ? "Create an account"
-        : "Have an account? Login";
-      document.getElementById("username").disabled = isLoginMode;
-      document.getElementById("username").required = !isLoginMode;
-      document.getElementById("password").autocomplete =
-        isLoginMode ? "current-password" : "new-password";
+    function updateMode() {
+      $("form-title").textContent = loginMode ? "Login to SchoolChat" : "Create Account";
+      $("action-btn").textContent = loginMode ? "Login" : "Register";
+      $("toggle-btn").textContent = loginMode ? "Create an account" : "Have an account? Login";
+      $("username").disabled = loginMode;
+      $("username").required = !loginMode;
+      $("password").autocomplete = loginMode ? "current-password" : "new-password";
       showError("");
     }
 
-    function normalizeBackgroundUrl(value) {
-      const raw = value.trim();
-      if (!raw) return "";
-
+    function validHttpUrl(value) {
+      if (!value.trim()) return "";
       try {
-        const url = new URL(raw);
-        if (url.protocol !== "https:" && url.protocol !== "http:") return "";
-        return url.href;
+        const url = new URL(value.trim());
+        return ["http:", "https:"].includes(url.protocol) ? url.href : "";
       } catch {
         return "";
       }
     }
 
-    bgInput.addEventListener("input", () => {
-      const url = normalizeBackgroundUrl(bgInput.value);
+    $("lobby-bg-url").addEventListener("input", () => {
+      const url = validHttpUrl($("lobby-bg-url").value);
+      const image = $("lobby-preview");
       if (!url) {
-        preview.removeAttribute("src");
-        preview.hidden = true;
+        image.removeAttribute("src");
+        image.hidden = true;
         return;
       }
-
-      preview.onload = () => { preview.hidden = false; };
-      preview.onerror = () => {
-        preview.removeAttribute("src");
-        preview.hidden = true;
-      };
-      preview.src = url;
+      image.onload = () => { image.hidden = false; };
+      image.onerror = () => { image.removeAttribute("src"); image.hidden = true; };
+      image.src = url;
     });
 
-    toggleBtn.addEventListener("click", () => {
+    $("toggle-btn").addEventListener("click", () => {
       if (busy) return;
-      isLoginMode = !isLoginMode;
-      document.getElementById("username").value = "";
-      document.getElementById("email").value = "";
-      document.getElementById("password").value = "";
-      updateModeUI();
+      loginMode = !loginMode;
+      $("username").value = "";
+      $("email").value = "";
+      $("password").value = "";
+      updateMode();
     });
 
-    function describeAuthError(error) {
-      const code = error && error.code;
+    function authError(error) {
       const messages = {
         "auth/email-already-in-use": "This email is already registered.",
         "auth/invalid-email": "Enter a valid email address.",
@@ -243,97 +139,72 @@
         "auth/too-many-requests": "Too many attempts. Try again later.",
         "auth/popup-closed-by-user": "The sign-in window was closed."
       };
-
-      if (messages[code]) return messages[code];
-      return error && error.message ? error.message : "Something went wrong.";
+      return messages[error.code] || error.message || "Something went wrong.";
     }
 
-    function makeProfile(user, username, background) {
-      return {
-        username,
-        email: user.email || "",
-        photoURL: user.photoURL || "",
-        friends: [],
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        status: "online",
-        lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
-        nameColor: "#FFFFFF",
-        gradientEnabled: false,
-        customBackground: background
-      };
-    }
-
-    async function createUniqueUsernameProfile(user, requestedUsername, background) {
-      const username = requestedUsername.trim().toLowerCase();
-
-      if (!/^[a-z0-9_]{3,30}$/.test(username)) {
-        throw new Error("Username must be 3–30 characters: letters, numbers, or underscores.");
+    async function reserveUsername(user, username, background) {
+      const name = username.trim().toLowerCase();
+      if (!/^[a-z0-9_]{3,30}$/.test(name)) {
+        throw new Error("Username must be 3–30 characters using letters, numbers, or underscores.");
       }
 
-      const reservationRef = db.collection("usernames").doc(username);
+      const nameRef = db.collection("usernames").doc(name);
       const userRef = db.collection("users").doc(user.uid);
 
       await db.runTransaction(async transaction => {
-        const reservation = await transaction.get(reservationRef);
-
-        if (reservation.exists && reservation.data().uid !== user.uid) {
+        const reserved = await transaction.get(nameRef);
+        if (reserved.exists && reserved.data().uid !== user.uid) {
           throw new Error("That username is already taken.");
         }
 
-        transaction.set(reservationRef, { uid: user.uid });
-        transaction.set(
-          userRef,
-          makeProfile(user, username, background),
-          { merge: true }
-        );
+        transaction.set(nameRef, { uid: user.uid });
+        transaction.set(userRef, {
+          username: name,
+          email: user.email || "",
+          photoURL: user.photoURL || "",
+          friends: [],
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          status: "online",
+          lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+          nameColor: "#FFFFFF",
+          gradientEnabled: false,
+          customBackground: background
+        }, { merge: true });
       });
     }
 
     async function handleAuth() {
       if (busy) return;
-
       showError("");
 
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
-      const username = document.getElementById("username").value.trim();
-      const background = normalizeBackgroundUrl(bgInput.value);
+      const email = $("email").value.trim();
+      const password = $("password").value;
+      const username = $("username").value.trim();
+      const background = validHttpUrl($("lobby-bg-url").value);
 
-      if (!email || !password) {
-        showError("Enter your email address and password.");
-        return;
-      }
-
-      if (!isLoginMode && !username) {
-        showError("Choose a username.");
-        return;
-      }
+      if (!email || !password) return showError("Enter your email and password.");
+      if (!loginMode && !username) return showError("Choose a username.");
 
       setBusy(true);
-
       try {
-        if (isLoginMode) {
+        if (loginMode) {
           await auth.signInWithEmailAndPassword(email, password);
         } else {
           const credential = await auth.createUserWithEmailAndPassword(email, password);
-          const user = credential.user;
-
           try {
-            await user.updateProfile({ displayName: username.trim() });
-            await createUniqueUsernameProfile(user, username, background);
+            await credential.user.updateProfile({ displayName: username });
+            await reserveUsername(credential.user, username, background);
           } catch (error) {
-            // Clean up the newly created auth account if profile setup fails.
-            try { await user.delete(); } catch (cleanupError) {
-              console.error("Could not clean up incomplete account:", cleanupError);
+            try { await credential.user.delete(); } catch (cleanupError) {
+              console.error("Account cleanup failed:", cleanupError);
             }
             throw error;
           }
         }
-
         window.location.href = "chat.html";
       } catch (error) {
         console.error(error);
-        showError(describeAuthError(error));
+        showError(authError(error));
       } finally {
         setBusy(false);
       }
@@ -341,73 +212,59 @@
 
     async function loginWithGoogle() {
       if (busy) return;
-
-      showError("");
       setBusy(true);
+      showError("");
 
       try {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        const result = await auth.signInWithPopup(provider);
+        const result = await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
         const user = result.user;
         const userRef = db.collection("users").doc(user.uid);
         const existing = await userRef.get();
-        const background = normalizeBackgroundUrl(bgInput.value);
+        const background = validHttpUrl($("lobby-bg-url").value);
 
         if (existing.exists) {
-          const update = {
+          const updates = {
             email: user.email || "",
             photoURL: user.photoURL || "",
             status: "online",
             lastSeen: firebase.firestore.FieldValue.serverTimestamp()
           };
-          if (background) update.customBackground = background;
-          await userRef.update(update);
+          if (background) updates.customBackground = background;
+          await userRef.update(updates);
         } else {
           const base = (user.displayName || "user")
-            .toLowerCase()
-            .replace(/[^a-z0-9_]/g, "_")
-            .replace(/^_+|_+$/g, "")
-            .slice(0, 24) || "user";
+            .toLowerCase().replace(/[^a-z0-9_]/g, "_")
+            .replace(/^_+|_+$/g, "").slice(0, 24) || "user";
 
-          // Try a few deterministic candidates. The transaction prevents
-          // two accounts from claiming the same reservation simultaneously.
-          let created = false;
-          for (let attempt = 0; attempt < 20 && !created; attempt++) {
-            const candidate = attempt === 0
-              ? base
-              : `${base}_${Math.floor(1000 + Math.random() * 9000)}`;
-
+          let done = false;
+          for (let i = 0; i < 20 && !done; i++) {
+            const candidate = i === 0 ? base : `${base}_${1000 + Math.floor(Math.random() * 9000)}`;
             try {
-              await createUniqueUsernameProfile(user, candidate, background);
-              created = true;
+              await reserveUsername(user, candidate, background);
+              done = true;
             } catch (error) {
               if (error.message !== "That username is already taken.") throw error;
             }
           }
-
-          if (!created) {
-            throw new Error("Could not find an available username. Please try again.");
-          }
+          if (!done) throw new Error("Could not find an available username. Please try again.");
         }
 
         window.location.href = "chat.html";
       } catch (error) {
         console.error(error);
-        showError(describeAuthError(error));
+        showError(authError(error));
       } finally {
         setBusy(false);
       }
     }
 
-    actionBtn.addEventListener("click", handleAuth);
-    googleBtn.addEventListener("click", loginWithGoogle);
-
+    $("action-btn").addEventListener("click", handleAuth);
+    $("google-btn").addEventListener("click", loginWithGoogle);
     document.addEventListener("keydown", event => {
       if (event.key === "Enter" && !busy) handleAuth();
     });
 
-    updateModeUI();
-
+    updateMode();
     auth.onAuthStateChanged(user => {
       if (user) window.location.href = "chat.html";
     });
