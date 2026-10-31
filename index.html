@@ -28,8 +28,7 @@
       background: #383A40;
       padding: 30px;
       border-radius: 12px;
-      width: 100%;
-      max-width: 380px;
+      width: min(380px, 100%);
       box-shadow: 0 10px 25px rgba(0,0,0,.5);
       text-align: center;
     }
@@ -61,7 +60,7 @@
     }
 
     button:hover { opacity: .9; }
-    button:disabled { opacity: .5; cursor: wait; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
 
     .btn-google {
       background: white;
@@ -73,6 +72,7 @@
     }
 
     .btn-primary { background: #5865F2; color: white; }
+    .toggle-btn { background: transparent; color: #00AFF4; }
 
     .preview-img {
       width: 100%;
@@ -85,9 +85,9 @@
 
     #error-msg {
       color: #ed4245;
-      font-size: 12px;
+      font-size: 13px;
       margin-bottom: 10px;
-      min-height: 15px;
+      min-height: 18px;
       overflow-wrap: anywhere;
     }
 
@@ -97,17 +97,8 @@
       font-size: 12px;
       text-transform: uppercase;
     }
-
-    .toggle-btn {
-      background: transparent;
-      color: #00AFF4;
-      margin-top: 5px;
-    }
-
-    .toggle-btn:hover { background: rgba(0,175,244,.1); }
   </style>
 </head>
-
 <body>
   <main class="container">
     <h2 id="form-title">Login to SchoolChat</h2>
@@ -116,12 +107,12 @@
     <input
       type="url"
       id="lobby-bg-url"
-      placeholder="Chat background image URL (optional)"
+      placeholder="Optional chat background image URL"
       autocomplete="url"
     >
     <img id="lobby-preview" class="preview-img" alt="Background preview" hidden>
 
-    <button id="google-btn" class="btn-google" type="button">
+    <button class="btn-google" id="google-btn" type="button">
       <img
         src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
         width="18"
@@ -135,13 +126,17 @@
     <input
       type="text"
       id="username"
-      placeholder="Choose a username"
+      placeholder="Choose a username (registration only)"
       autocomplete="username"
       maxlength="30"
-      hidden
     >
     <input type="email" id="email" placeholder="Email address" autocomplete="email">
-    <input type="password" id="password" placeholder="Password" autocomplete="current-password">
+    <input
+      type="password"
+      id="password"
+      placeholder="Password"
+      autocomplete="current-password"
+    >
 
     <button id="action-btn" class="btn-primary" type="button">Login</button>
     <button id="toggle-btn" class="toggle-btn" type="button">Create an account</button>
@@ -164,99 +159,153 @@
     const db = firebase.firestore();
 
     let isLoginMode = true;
+    let busy = false;
 
-    const $ = id => document.getElementById(id);
-    const errorEl = $("error-msg");
-    const actionBtn = $("action-btn");
-    const googleBtn = $("google-btn");
+    const errorEl = document.getElementById("error-msg");
+    const actionBtn = document.getElementById("action-btn");
+    const toggleBtn = document.getElementById("toggle-btn");
+    const googleBtn = document.getElementById("google-btn");
+    const bgInput = document.getElementById("lobby-bg-url");
+    const preview = document.getElementById("lobby-preview");
 
     function showError(message) {
       errorEl.textContent = message;
     }
 
-    function setBusy(busy) {
-      actionBtn.disabled = busy;
-      googleBtn.disabled = busy;
-      $("toggle-btn").disabled = busy;
+    function setBusy(value) {
+      busy = value;
+      actionBtn.disabled = value;
+      toggleBtn.disabled = value;
+      googleBtn.disabled = value;
     }
 
-    function normalizeUsername(value) {
-      return value.trim().toLowerCase();
-    }
-
-    function validateUsername(value) {
-      if (value.length < 3 || value.length > 30) {
-        return "Username must be between 3 and 30 characters.";
-      }
-      if (!/^[a-z0-9_]+$/.test(value)) {
-        return "Use only lowercase letters, numbers, and underscores.";
-      }
-      return "";
-    }
-
-    function toggleMode() {
-      isLoginMode = !isLoginMode;
-      showError("");
-
-      $("form-title").textContent =
+    function updateModeUI() {
+      document.getElementById("form-title").textContent =
         isLoginMode ? "Login to SchoolChat" : "Create Account";
       actionBtn.textContent = isLoginMode ? "Login" : "Register";
-      $("toggle-btn").textContent =
-        isLoginMode ? "Create an account" : "Have an account? Login";
-      $("username").hidden = isLoginMode;
-      $("password").autocomplete =
+      toggleBtn.textContent = isLoginMode
+        ? "Create an account"
+        : "Have an account? Login";
+      document.getElementById("username").disabled = isLoginMode;
+      document.getElementById("username").required = !isLoginMode;
+      document.getElementById("password").autocomplete =
         isLoginMode ? "current-password" : "new-password";
-    }
-
-    async function saveGoogleProfile(user) {
-      const userRef = db.collection("users").doc(user.uid);
-      const userSnap = await userRef.get();
-
-      if (!userSnap.exists) {
-        const baseName = (user.displayName || "user")
-          .toLowerCase()
-          .replace(/[^a-z0-9_]/g, "")
-          .slice(0, 22) || "user";
-
-        const username = baseName + "_" + user.uid.slice(0, 6);
-
-        await userRef.set({
-          username,
-          email: user.email || "",
-          photoURL: user.photoURL || "",
-          friends: [],
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          customBackground: $("lobby-bg-url").value.trim()
-        });
-      }
-    }
-
-    async function loginWithGoogle() {
       showError("");
-      setBusy(true);
+    }
+
+    function normalizeBackgroundUrl(value) {
+      const raw = value.trim();
+      if (!raw) return "";
 
       try {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        const result = await auth.signInWithPopup(provider);
-        await saveGoogleProfile(result.user);
-        window.location.href = "chat.html";
-      } catch (error) {
-        console.error("Google sign-in/profile error:", error);
-        showError(error.message || "Google sign-in failed.");
-      } finally {
-        setBusy(false);
+        const url = new URL(raw);
+        if (url.protocol !== "https:" && url.protocol !== "http:") return "";
+        return url.href;
+      } catch {
+        return "";
       }
+    }
+
+    bgInput.addEventListener("input", () => {
+      const url = normalizeBackgroundUrl(bgInput.value);
+      if (!url) {
+        preview.removeAttribute("src");
+        preview.hidden = true;
+        return;
+      }
+
+      preview.onload = () => { preview.hidden = false; };
+      preview.onerror = () => {
+        preview.removeAttribute("src");
+        preview.hidden = true;
+      };
+      preview.src = url;
+    });
+
+    toggleBtn.addEventListener("click", () => {
+      if (busy) return;
+      isLoginMode = !isLoginMode;
+      document.getElementById("username").value = "";
+      document.getElementById("email").value = "";
+      document.getElementById("password").value = "";
+      updateModeUI();
+    });
+
+    function describeAuthError(error) {
+      const code = error && error.code;
+      const messages = {
+        "auth/email-already-in-use": "This email is already registered.",
+        "auth/invalid-email": "Enter a valid email address.",
+        "auth/invalid-credential": "Email or password is incorrect.",
+        "auth/user-not-found": "No account found with that email.",
+        "auth/wrong-password": "Email or password is incorrect.",
+        "auth/weak-password": "Password should be at least 6 characters.",
+        "auth/too-many-requests": "Too many attempts. Try again later.",
+        "auth/popup-closed-by-user": "The sign-in window was closed."
+      };
+
+      if (messages[code]) return messages[code];
+      return error && error.message ? error.message : "Something went wrong.";
+    }
+
+    function makeProfile(user, username, background) {
+      return {
+        username,
+        email: user.email || "",
+        photoURL: user.photoURL || "",
+        friends: [],
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        status: "online",
+        lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+        nameColor: "#FFFFFF",
+        gradientEnabled: false,
+        customBackground: background
+      };
+    }
+
+    async function createUniqueUsernameProfile(user, requestedUsername, background) {
+      const username = requestedUsername.trim().toLowerCase();
+
+      if (!/^[a-z0-9_]{3,30}$/.test(username)) {
+        throw new Error("Username must be 3–30 characters: letters, numbers, or underscores.");
+      }
+
+      const reservationRef = db.collection("usernames").doc(username);
+      const userRef = db.collection("users").doc(user.uid);
+
+      await db.runTransaction(async transaction => {
+        const reservation = await transaction.get(reservationRef);
+
+        if (reservation.exists && reservation.data().uid !== user.uid) {
+          throw new Error("That username is already taken.");
+        }
+
+        transaction.set(reservationRef, { uid: user.uid });
+        transaction.set(
+          userRef,
+          makeProfile(user, username, background),
+          { merge: true }
+        );
+      });
     }
 
     async function handleAuth() {
+      if (busy) return;
+
       showError("");
 
-      const email = $("email").value.trim();
-      const password = $("password").value;
-      const username = normalizeUsername($("username").value);
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const username = document.getElementById("username").value.trim();
+      const background = normalizeBackgroundUrl(bgInput.value);
 
       if (!email || !password) {
-        showError("Please enter your email and password.");
+        showError("Enter your email address and password.");
+        return;
+      }
+
+      if (!isLoginMode && !username) {
+        showError("Choose a username.");
         return;
       }
 
@@ -265,105 +314,102 @@
       try {
         if (isLoginMode) {
           await auth.signInWithEmailAndPassword(email, password);
-          window.location.href = "chat.html";
-          return;
-        }
-
-        if (!username) {
-          showError("Please choose a username.");
-          return;
-        }
-
-        const usernameError = validateUsername(username);
-        if (usernameError) {
-          showError(usernameError);
-          return;
-        }
-
-        // Reserve the username and create the profile atomically.
-        // The security rules below must include /usernames/{username}.
-        const credential = await auth.createUserWithEmailAndPassword(
-          email,
-          password
-        );
-
-        const user = credential.user;
-        const usernameRef = db.collection("usernames").doc(username);
-        const profileRef = db.collection("users").doc(user.uid);
-
-        try {
-          await db.runTransaction(async transaction => {
-            const reservation = await transaction.get(usernameRef);
-            if (reservation.exists) {
-              throw new Error("USERNAME_TAKEN");
-            }
-
-            transaction.set(usernameRef, { uid: user.uid });
-            transaction.set(profileRef, {
-              username,
-              email,
-              photoURL: "",
-              friends: [],
-              createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-              customBackground: $("lobby-bg-url").value.trim()
-            });
-          });
-
-          await user.updateProfile({ displayName: username });
-          window.location.href = "chat.html";
-        } catch (error) {
-          // Remove the newly-created Auth account if profile creation failed.
-          try { await user.delete(); } catch (deleteError) {
-            console.error("Could not clean up failed account:", deleteError);
-          }
-          throw error;
-        }
-      } catch (error) {
-        console.error("Authentication error:", error);
-
-        const code = error.code || "";
-        if (error.message === "USERNAME_TAKEN") {
-          showError("That username is already taken.");
-        } else if (code.includes("email-already-in-use")) {
-          showError("This email is already registered.");
-        } else if (code.includes("weak-password")) {
-          showError("Password should be at least 6 characters.");
-        } else if (code.includes("invalid-email")) {
-          showError("Please enter a valid email address.");
-        } else if (code.includes("permission-denied")) {
-          showError("Firestore denied the profile write. Check the published rules.");
         } else {
-          showError(error.message || "Could not complete sign-in.");
+          const credential = await auth.createUserWithEmailAndPassword(email, password);
+          const user = credential.user;
+
+          try {
+            await user.updateProfile({ displayName: username.trim() });
+            await createUniqueUsernameProfile(user, username, background);
+          } catch (error) {
+            // Clean up the newly created auth account if profile setup fails.
+            try { await user.delete(); } catch (cleanupError) {
+              console.error("Could not clean up incomplete account:", cleanupError);
+            }
+            throw error;
+          }
         }
+
+        window.location.href = "chat.html";
+      } catch (error) {
+        console.error(error);
+        showError(describeAuthError(error));
       } finally {
         setBusy(false);
       }
     }
 
-    $("toggle-btn").addEventListener("click", toggleMode);
+    async function loginWithGoogle() {
+      if (busy) return;
+
+      showError("");
+      setBusy(true);
+
+      try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        const result = await auth.signInWithPopup(provider);
+        const user = result.user;
+        const userRef = db.collection("users").doc(user.uid);
+        const existing = await userRef.get();
+        const background = normalizeBackgroundUrl(bgInput.value);
+
+        if (existing.exists) {
+          const update = {
+            email: user.email || "",
+            photoURL: user.photoURL || "",
+            status: "online",
+            lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+          };
+          if (background) update.customBackground = background;
+          await userRef.update(update);
+        } else {
+          const base = (user.displayName || "user")
+            .toLowerCase()
+            .replace(/[^a-z0-9_]/g, "_")
+            .replace(/^_+|_+$/g, "")
+            .slice(0, 24) || "user";
+
+          // Try a few deterministic candidates. The transaction prevents
+          // two accounts from claiming the same reservation simultaneously.
+          let created = false;
+          for (let attempt = 0; attempt < 20 && !created; attempt++) {
+            const candidate = attempt === 0
+              ? base
+              : `${base}_${Math.floor(1000 + Math.random() * 9000)}`;
+
+            try {
+              await createUniqueUsernameProfile(user, candidate, background);
+              created = true;
+            } catch (error) {
+              if (error.message !== "That username is already taken.") throw error;
+            }
+          }
+
+          if (!created) {
+            throw new Error("Could not find an available username. Please try again.");
+          }
+        }
+
+        window.location.href = "chat.html";
+      } catch (error) {
+        console.error(error);
+        showError(describeAuthError(error));
+      } finally {
+        setBusy(false);
+      }
+    }
+
     actionBtn.addEventListener("click", handleAuth);
     googleBtn.addEventListener("click", loginWithGoogle);
 
-    $("lobby-bg-url").addEventListener("input", () => {
-      const url = $("lobby-bg-url").value.trim();
-      const preview = $("lobby-preview");
-
-      if (!url) {
-        preview.hidden = true;
-        preview.removeAttribute("src");
-        return;
-      }
-
-      preview.src = url;
-      preview.hidden = false;
-      preview.onerror = () => {
-        preview.hidden = true;
-        preview.removeAttribute("src");
-      };
+    document.addEventListener("keydown", event => {
+      if (event.key === "Enter" && !busy) handleAuth();
     });
 
-    $("password").addEventListener("keydown", event => {
-      if (event.key === "Enter") handleAuth();
+    updateModeUI();
+
+    auth.onAuthStateChanged(user => {
+      if (user) window.location.href = "chat.html";
     });
   </script>
 </body>
