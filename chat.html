@@ -77,6 +77,7 @@
         .channels-section {
             padding: 10px;
             flex-grow: 1;
+            min-height: 0;
             overflow-y: auto;
         }
 
@@ -133,6 +134,29 @@
             color: white;
         }
 
+        /* Sign-out button at the bottom of the sidebar */
+        .sidebar-logout {
+            flex-shrink: 0;
+            margin: 10px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #ED4245;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .sidebar-logout:hover {
+            background-color: #C93B3E;
+        }
+
+        .sidebar-logout:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
         /* --- Stealth Section --- */
         .stealth-section {
             padding: 10px 15px;
@@ -178,7 +202,7 @@
             display: flex;
             flex-direction: column;
             position: relative;
-            background-color: #313338; /* Fallback */
+            background-color: #313338;
             background-size: cover;
             background-position: center;
         }
@@ -262,7 +286,7 @@
         }
 
         .mod-icon {
-            color: #FFD700; /* Gold */
+            color: #FFD700;
             font-size: 14px;
         }
 
@@ -279,7 +303,6 @@
             right: 10px;
         }
 
-        /* Gradient Name Style */
         .gradient-name {
             background: linear-gradient(to right, #ff00cc, #333399);
             -webkit-background-clip: text;
@@ -328,13 +351,11 @@
             color: white;
         }
 
-        /* --- Emoji Picker (Step 7) --- */
         #emoji-picker-container {
             position: absolute;
-            bottom: 60px; /* Floats nicely above input */
+            bottom: 60px;
             left: 10px;
-            z-index: 100; /* Below modals (2000) but above input (10) */
-            /* Ensure it doesn't overlap critical UI by being offset from edges */
+            z-index: 100;
         }
 
         /* --- Alerts --- */
@@ -353,15 +374,14 @@
         .blinker-alert h1 { color: #ED4245; font-size: 4rem; animation: blink 1s infinite; }
         .vape-alert h1 { color: #3BA55C; font-size: 4rem; }
         
-        /* NEW: Cart Alert Styling (Green/Gold Theme) */
         .cart-alert h1 { 
-            color: #F0B232; /* Gold */
+            color: #F0B232;
             font-size: 4rem; 
             animation: cartPulse 1.5s infinite;
-            text-shadow: 0 0 10px #3BA55C, 0 0 20px #3BA55C; /* Green Glow */
+            text-shadow: 0 0 10px #3BA55C, 0 0 20px #3BA55C;
         }
         .cart-alert h2 {
-            color: #3BA55C; /* Green Text */
+            color: #3BA55C;
             font-size: 2rem;
             margin-top: 10px;
         }
@@ -480,7 +500,6 @@
 
         .mod-btn:hover { background: #5865F2; }
 
-        /* Close Button for Panels */
         .close-btn {
             position: absolute;
             top: 10px;
@@ -582,7 +601,7 @@
             outline: none;
         }
 
-        /* --- Modal Overlays (Rules, Channel Create, etc) --- */
+        /* --- Modal Overlays --- */
         .modal {
             display: none;
             position: fixed;
@@ -598,7 +617,7 @@
             padding: 20px;
             border-radius: 8px;
             width: 300px;
-            position: relative; /* For close button */
+            position: relative;
         }
 
         .modal-title {
@@ -606,12 +625,10 @@
             margin-bottom: 15px;
         }
 
-        /* Scrollbar Styling */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #2B2D31; }
         ::-webkit-scrollbar-thumb { background: #1A1B1E; border-radius: 4px; }
 
-        /* --- SMOKE EFFECT (FIXED) --- */
         #smoke-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -633,10 +650,7 @@
                 transform: scale(0.5);
                 background: radial-gradient(circle at center, rgba(255,255,255,0.9) 0%, transparent 60%);
             }
-            20% {
-                opacity: 0.8;
-                transform: scale(1.2);
-            }
+            20% { opacity: 0.8; transform: scale(1.2); }
             50% {
                 opacity: 0.6;
                 transform: scale(1.5);
@@ -649,7 +663,6 @@
             }
         }
         
-        /* Connection Status Styles */
         .status-indicator {
             display: inline-block;
             width: 10px;
@@ -670,7 +683,6 @@
 </head>
 <body>
 
-    <!-- Smoke Overlay Element -->
     <div id="smoke-overlay"></div>
 
     <!-- Sidebar -->
@@ -684,7 +696,6 @@
             <div class="username-display" id="sidebar-username">Loading...</div>
         </div>
 
-        <!-- New Stealth Section -->
         <div class="stealth-section">
             <div style="font-size:11px; color:#B9BBBE; margin-bottom:5px; font-weight:bold;">STEALTH MODE</div>
             <div class="stealth-input-group">
@@ -702,6 +713,8 @@
                 <!-- Channels will be injected here -->
             </div>
         </div>
+
+        <button class="sidebar-logout" id="logout-btn" type="button">Log Out</button>
     </div>
 
     <!-- Chat Area -->
@@ -713,21 +726,16 @@
             <div class="header-buttons">
                 <button class="icon-btn" id="btn-call" title="Start Call">📞</button>
                 <button class="icon-btn" id="btn-blinker" title="Blinker Alert">⚠️</button>
-                <!-- Renamed to Vape -->
                 <button class="icon-btn" id="btn-vape" title="Vape Break">💨</button>
-                <!-- Added Cart Button -->
                 <button class="icon-btn" id="btn-cart" title="Cart Break">🛒</button>
                 <button class="icon-btn" id="btn-rules" title="View Rules">📜</button>
                 <button class="icon-btn" id="btn-mod" title="Mod Tools">🛡️</button>
             </div>
         </div>
 
-        <div id="messages">
-            <!-- Messages go here -->
-        </div>
+        <div id="messages"></div>
 
         <div class="input-area">
-            <!-- File upload removed as requested -->
             <input type="text" id="msg-input" placeholder="Message #general" autocomplete="off" maxlength="1500">
             <button class="input-icon-btn" id="emoji-trigger">😊</button>
         </div>
@@ -774,7 +782,6 @@
         <p>Roll up yo sleeve, its time to hit the vape!</p>
     </div>
 
-    <!-- NEW: Cart Alert Overlay -->
     <div id="cart-alert" class="alert-overlay cart-alert">
         <h1>CART BREAK!</h1>
         <h2>Tap The Yart, (a full hit is not mandatory) Now!</h2>
@@ -784,7 +791,7 @@
     <div id="stealth-layer">
        <iframe id="stealth-frame" src="https://www.youtube.com/embed/_zd0qJ3H4KI?list=RD_zd0qJ3H4KI&start=69"></iframe>
         <div class="stealth-ui-overlay">
-            <div class="stealth-top-bar">
+            <div class="stealth-top-bar"></div>
         </div>
     </div>
 
@@ -808,13 +815,10 @@
             <button class="close-btn" onclick="closeCallModal()">✕</button>
             <h3 class="modal-title">Start Call</h3>
             <div id="my-peer-id" style="margin-bottom: 10px; font-size: 12px;"></div>
-            
-            <!-- Connection Status Indicator -->
             <div id="connection-status" style="margin-bottom: 10px; font-size: 12px; display: none;">
                 <span id="status-dot" class="status-indicator status-connecting"></span>
                 <span id="status-text">Connecting...</span>
             </div>
-
             <input type="text" id="room-id-input" class="setting-input" placeholder="Enter Room ID or Leave Empty to Create">
             <button class="stealth-btn" onclick="createOrJoinRoom()" style="width:100%; margin-top:10px;">Connect</button>
             <div id="room-info" style="margin-top: 10px; font-size: 12px;"></div>
@@ -838,8 +842,7 @@
         <button onclick="showRawData()" style="background:#00FF00; color:#000; border:none; padding:5px;">View Data</button>
     </div>
 
-    <!-- Emoji Picker Container -->
-    <div id="emoji-picker-container" style="position: absolute; bottom: 60px; left: 10px; z-index: 100;"></div>
+    <div id="emoji-picker-container"></div>
 
     <!-- Channel Creation Modal -->
     <div id="channel-modal" class="modal">
@@ -850,9 +853,6 @@
             <button class="stealth-btn" onclick="createChannel()" style="width:100%; margin-top:10px;">Create</button>
         </div>
     </div>
-
-    <!-- Logout Button -->
-    <button class="stealth-btn" id="logout-btn" style="position: absolute; bottom: 10px; left: 10px; z-index: 30;">Log Out</button>
 
     <script>
         // --- Firebase Configuration ---
@@ -871,7 +871,6 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // --- State Variables ---
         let currentUser = null;
         let currentChatId = "general";
         let peer = null;
@@ -879,9 +878,8 @@
         let activeRoomId = null;
         let currentMsgId = null;
         let emojiPicker = null;
-        let currentCall = null; // Track the active call object
+        let currentCall = null;
 
-        // Robust ICE Configuration
         const iceConfig = {
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
@@ -890,11 +888,10 @@
                 { urls: 'stun:stun3.l.google.com:19302' },
                 { urls: 'stun:stun4.l.google.com:19302' }
             ],
-            iceTransportPolicy: 'all', // Allow both direct and relayed connections
-            sdpSemantics: 'unified-plan' // More stable for modern browsers
+            iceTransportPolicy: 'all',
+            sdpSemantics: 'unified-plan'
         };
 
-        // --- Initialization ---
         auth.onAuthStateChanged(user => {
             if (user) {
                 currentUser = user;
@@ -905,13 +902,12 @@
                 initEmojiPicker();
                 setupDevMode();
                 updateSidebarProfile();
-                loadStealthUrl(); // Step 6: Load last used stealth URL
+                loadStealthUrl();
             } else {
                 window.location.href = "index.html";
             }
         });
 
-        // --- User Data Handling ---
         function loadUserData() {
             db.collection("users").doc(currentUser.uid).onSnapshot(doc => {
                 const data = doc.data();
@@ -919,20 +915,16 @@
 
                 document.getElementById("sidebar-username").textContent = data.username || "User";
                 document.getElementById("sidebar-avatar").style.backgroundImage = `url(${data.avatar || ''})`;
-                
-                // Apply settings
+
                 const usernameEl = document.getElementById("sidebar-username");
-                if (data.gradient && data.gradient === true) {
+                if (data.gradient === true) {
                     usernameEl.classList.add("gradient-name");
                 } else {
                     usernameEl.classList.remove("gradient-name");
                 }
-                
-                if (data.color) {
-                    usernameEl.style.color = data.color;
-                }
 
-                // Set chat background if set in profile
+                if (data.color) usernameEl.style.color = data.color;
+
                 if (data.chatBackground) {
                     document.getElementById("chat-area").style.backgroundImage = `url(${data.chatBackground})`;
                 } else {
@@ -942,7 +934,7 @@
         }
 
         function updateSidebarProfile() {
-            if(!currentUser) return;
+            if (!currentUser) return;
             db.collection("users").doc(currentUser.uid).get().then(doc => {
                 const data = doc.data();
                 document.getElementById("setting-username").value = data?.username || "";
@@ -952,20 +944,15 @@
             });
         }
 
-        // --- Step 6: Stealth URL Persistence ---
         function loadStealthUrl() {
             const savedUrl = localStorage.getItem('lastStealthUrl');
-            if (savedUrl) {
-                document.getElementById("stealth-link-input").value = savedUrl;
-            }
+            if (savedUrl) document.getElementById("stealth-link-input").value = savedUrl;
         }
 
-        // Save URL on every keystroke
-        document.getElementById("stealth-link-input").addEventListener("input", (e) => {
+        document.getElementById("stealth-link-input").addEventListener("input", e => {
             localStorage.setItem('lastStealthUrl', e.target.value);
         });
 
-        // --- Settings Logic ---
         function toggleSettings() {
             const panel = document.getElementById("settings-panel");
             panel.style.display = panel.style.display === "block" ? "none" : "block";
@@ -978,35 +965,30 @@
             const gradient = document.getElementById("setting-gradient").checked;
 
             db.collection("users").doc(currentUser.uid).update({
-                username: username,
-                avatar: avatar,
-                color: color,
-                gradient: gradient
-            }).then(() => {
-                toggleSettings();
-            });
+                username, avatar, color, gradient
+            }).then(() => toggleSettings())
+              .catch(error => {
+                  console.error("Could not save settings:", error);
+                  alert("Could not save settings.");
+              });
         }
 
-        // --- Lobby / Background Setup (Simple Implementation) ---
-        // Assuming there's a way to set background via settings or a lobby screen not fully shown here
-        // If you have a specific lobby input, bind it to 'chatBackground' in user profile
-
-        // --- Messaging System ---
         function sendMessage() {
             const input = document.getElementById("msg-input");
             const text = input.value.trim();
-            
-            if (!text) return;
+            if (!text || !currentUser) return;
 
-            const messageData = {
+            db.collection("chats").doc(currentChatId).collection("messages").add({
                 senderId: currentUser.uid,
-                text: text,
+                text,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 chatId: currentChatId
-            };
-
-            db.collection("chats").doc(currentChatId).collection("messages").add(messageData);
-            input.value = "";
+            }).then(() => {
+                input.value = "";
+            }).catch(error => {
+                console.error("Could not send message:", error);
+                alert("Could not send message.");
+            });
         }
 
         function listenToMessages() {
@@ -1014,65 +996,22 @@
                 .orderBy("timestamp", "asc")
                 .onSnapshot(snapshot => {
                     const container = document.getElementById("messages");
-                    container.innerHTML = ""; // Clear and re-render (simple approach)
-                    
+                    container.innerHTML = "";
+
                     snapshot.forEach(doc => {
                         const msg = doc.data();
                         const div = document.createElement("div");
                         div.className = `message ${msg.senderId === currentUser.uid ? 'self' : 'other'}`;
                         div.dataset.id = doc.id;
 
-                        // Get username/color/mod status for other users
-                        if (msg.senderId !== currentUser.uid) {
-                            db.collection("users").doc(msg.senderId).get().then(userDoc => {
-                                const userData = userDoc.data();
-                                const author = document.createElement("div");
-                                author.className = "message-author";
-                                
-                                // Add Crown Icon if Mod
-                                if (userData?.isModerator) {
-                                    const crown = document.createElement("span");
-                                    crown.className = "mod-icon";
-                                    crown.textContent = "👑";
-                                    author.appendChild(crown);
-                                }
+                        const author = document.createElement("div");
+                        author.className = "message-author";
+                        author.textContent = msg.senderId === currentUser.uid ? "You" : "User";
+                        div.appendChild(author);
 
-                                author.textContent = userData?.username || "Unknown";
-                                if(userData?.gradient) author.classList.add("gradient-name");
-                                if(userData?.color) author.style.color = userData.color;
-                                div.prepend(author);
-                            });
-                        } else {
-                            const author = document.createElement("div");
-                            author.className = "message-author";
-                            
-                            // Check if self is mod
-                            if (currentUser?.isModerator) {
-                                const crown = document.createElement("span");
-                                crown.className = "mod-icon";
-                                crown.textContent = "👑";
-                                author.appendChild(crown);
-                            }
-                            
-                            author.textContent = "You";
-                            div.prepend(author);
-                        }
-
-                        // Handle Links
                         const textDiv = document.createElement("div");
                         textDiv.className = "message-text";
-                        
-                        if (msg.text.startsWith("http")) {
-                            // Simple Link Embed
-                            const embed = document.createElement("div");
-                            embed.style.padding = "10px";
-                            embed.style.borderLeft = "4px solid #5865F2";
-                            embed.style.background = "#2B2D31";
-                            embed.innerHTML = `<strong>Link:</strong> <a href="${msg.text}" target="_blank">${msg.text}</a>`;
-                            textDiv.appendChild(embed);
-                        } else {
-                            textDiv.textContent = msg.text;
-                        }
+                        textDiv.textContent = msg.text || "";
                         div.appendChild(textDiv);
 
                         const time = document.createElement("div");
@@ -1083,50 +1022,39 @@
 
                         container.appendChild(div);
 
-                        // IF IN CALL, ADD TO IN-CALL CHAT TOO
                         if (document.getElementById("video-overlay").style.display === "flex") {
                             const inCallMsg = document.createElement("div");
                             inCallMsg.className = "in-call-msg";
-                            
-                            // Fetch username for display in in-call chat
-                            let displayName = msg.senderId === currentUser.uid ? 'You' : 'User';
-                            db.collection("users").doc(msg.senderId).get().then(d => {
-                                if(d.exists) displayName = d.data()?.username || 'User';
-                                inCallMsg.innerHTML = `<strong>${displayName}:</strong> ${msg.text}`;
-                                inCallMessages.appendChild(inCallMsg);
-                                inCallMessages.scrollTop = inCallMessages.scrollHeight;
-                            });
+                            inCallMsg.textContent = msg.text || "";
+                            inCallMessages.appendChild(inCallMsg);
                         }
                     });
+
                     container.scrollTop = container.scrollHeight;
                 });
         }
 
-        // --- Friends & Social ---
         function addFriend() {
             const email = prompt("Enter friend's email or username prefix:");
             if (!email) return;
 
             db.collection("users").where("email", "==", email).get().then(querySnapshot => {
                 if (querySnapshot.empty) {
-                    // Try username prefix
                     db.collection("users").where("username", ">=", email).limit(1).get().then(uSnap => {
-                         if(uSnap.empty) alert("User not found");
-                         else {
-                             const friendId = uSnap.docs[0].id;
-                             addFriendRelation(friendId);
-                         }
+                        if (uSnap.empty) alert("User not found");
+                        else addFriendRelation(uSnap.docs[0].id);
                     });
                 } else {
-                    const friendId = querySnapshot.docs[0].id;
-                    addFriendRelation(friendId);
+                    addFriendRelation(querySnapshot.docs[0].id);
                 }
+            }).catch(error => {
+                console.error(error);
+                alert("Could not search for that user.");
             });
         }
 
         function addFriendRelation(friendId) {
             if (friendId === currentUser.uid) return;
-            
             db.collection("users").doc(currentUser.uid).update({
                 friends: firebase.firestore.FieldValue.arrayUnion(friendId)
             });
@@ -1135,12 +1063,10 @@
         function renderFriends() {
             if (!currentUser) return;
             db.collection("users").doc(currentUser.uid).get().then(doc => {
-                const data = doc.data();
-                const friends = data?.friends || [];
-                const container = document.getElementById("channels-container"); // Reusing channels container for demo, or create specific one
-                container.innerHTML = ""; 
+                const friends = doc.data()?.friends || [];
+                const container = document.getElementById("channels-container");
+                container.innerHTML = "";
 
-                // Add Default General Channel
                 const generalItem = document.createElement("div");
                 generalItem.className = "channel-item active";
                 generalItem.innerHTML = `<span class="channel-hash">#</span> general`;
@@ -1149,10 +1075,9 @@
 
                 friends.forEach(fid => {
                     db.collection("users").doc(fid).get().then(userDoc => {
-                        const uData = userDoc.data();
                         const item = document.createElement("div");
                         item.className = "channel-item";
-                        item.innerHTML = `<div class="avatar" style="width:24px;height:24px;margin-right:5px;background-image:url('${uData?.avatar||''}')"></div> ${uData?.username || "User"}`;
+                        item.textContent = userDoc.data()?.username || "User";
                         item.onclick = () => switchChat(`dm-${fid}`);
                         container.appendChild(item);
                     });
@@ -1164,16 +1089,13 @@
             currentChatId = chatId;
             document.getElementById("current-chat-name").textContent = chatId.replace("dm-", "");
             document.getElementById("msg-input").placeholder = `Message #${chatId.replace("dm-", "")}`;
-            
-            // Update active state in sidebar
             document.querySelectorAll(".channel-item").forEach(el => el.classList.remove("active"));
-            // Simple highlight logic would go here based on chatId match
+            listenToMessages();
         }
 
-        // --- Alert System ---
         function triggerAlert(type) {
             db.collection("alerts").add({
-                type: type,
+                type,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
         }
@@ -1181,80 +1103,72 @@
         function checkForAlerts() {
             db.collection("alerts").orderBy("timestamp", "desc").limit(1).onSnapshot(snapshot => {
                 if (!snapshot.empty) {
-                    const alert = snapshot.docs[0].data();
+                    const alertData = snapshot.docs[0].data();
                     const now = new Date();
-                    const alertTime = alert.timestamp ? new Date(alert.timestamp.toMillis()) : now;
-                    
-                    // Only show if within last 5 seconds
-                    if ((now - alertTime) < 5000) {
-                        showSpecificAlert(alert.type);
-                    }
+                    const alertTime = alertData.timestamp ? new Date(alertData.timestamp.toMillis()) : now;
+                    if ((now - alertTime) < 5000) showSpecificAlert(alertData.type);
                 }
             });
         }
 
         function showSpecificAlert(type) {
-            // Hide others first
             document.querySelectorAll('.alert-overlay').forEach(el => el.style.display = 'none');
-            
-            let overlayId = '';
-            if (type === 'blinker') overlayId = 'blinker-alert';
-            else if (type === 'vape') overlayId = 'vape-alert';
-            else if (type === 'cart') overlayId = 'cart-alert';
+
+            const overlayId = {
+                blinker: 'blinker-alert',
+                vape: 'vape-alert',
+                cart: 'cart-alert'
+            }[type];
 
             if (overlayId) {
-                const overlay = document.getElementById(overlayId);
-                overlay.style.display = 'flex';
-                
-                // Trigger smoke
+                document.getElementById(overlayId).style.display = 'flex';
                 triggerSmoke();
-
                 setTimeout(() => {
-                    overlay.style.display = 'none';
+                    document.getElementById(overlayId).style.display = 'none';
                 }, 3000);
             }
         }
 
-        // --- Smoke Effect ---
         function triggerSmoke() {
             const smoke = document.getElementById("smoke-overlay");
             smoke.classList.remove("smoke-active");
-            void smoke.offsetWidth; // Trigger reflow
+            void smoke.offsetWidth;
             smoke.classList.add("smoke-active");
         }
 
-        // --- Event Listeners for Buttons ---
         document.getElementById("btn-blinker").onclick = () => triggerAlert('blinker');
         document.getElementById("btn-vape").onclick = () => triggerAlert('vape');
         document.getElementById("btn-cart").onclick = () => triggerAlert('cart');
 
-        // --- Stealth Mode ---
         document.addEventListener("keydown", e => {
             if (e.shiftKey && e.code === "CapsLock") {
                 const stealth = document.getElementById("stealth-layer");
-                const isVisible = stealth.style.display === "flex";
-                stealth.style.display = isVisible ? "none" : "flex";
-                if (!isVisible) {
-                    // Reload iframe to ensure video starts fresh
+                const shouldShow = stealth.style.display !== "flex";
+                stealth.style.display = shouldShow ? "flex" : "none";
+                if (shouldShow) {
                     const frame = document.getElementById("stealth-frame");
-                    frame.src = frame.src; 
+                    frame.src = frame.src;
                 }
             }
         });
 
         document.getElementById("stealth-activate-btn").onclick = () => {
-            const url = document.getElementById("stealth-link-input").value;
-            if (url) {
-                document.getElementById("stealth-frame").src = url;
+            const value = document.getElementById("stealth-link-input").value.trim();
+            if (!value) return;
+            try {
+                const url = new URL(value);
+                if (!["http:", "https:"].includes(url.protocol)) throw new Error("Invalid URL");
+                document.getElementById("stealth-frame").src = url.href;
                 document.getElementById("stealth-layer").style.display = "flex";
+            } catch {
+                alert("Enter a valid http or https URL.");
             }
         };
 
-        // --- Video Calls (PeerJS) ---
         function initPeer() {
             if (peer) return;
             peer = new Peer(undefined, iceConfig);
-            
+
             peer.on('open', id => {
                 document.getElementById("my-peer-id").textContent = "Your ID: " + id;
             });
@@ -1279,13 +1193,9 @@
                         alert("Could not start camera/mic.");
                     });
             });
-            
-            peer.on('disconnected', () => {
-                console.log("Disconnected from PeerJS server");
-                updateStatus('failed');
-            });
-            
-            peer.on('error', (err) => {
+
+            peer.on('disconnected', () => updateStatus('failed'));
+            peer.on('error', err => {
                 console.error("PeerJS Error:", err);
                 updateStatus('failed');
                 alert("Connection error: " + err.type);
@@ -1295,18 +1205,16 @@
         function updateStatus(status) {
             const dot = document.getElementById("status-dot");
             const text = document.getElementById("status-text");
-            const container = document.getElementById("connection-status");
-            
-            container.style.display = "block";
-            dot.className = "status-indicator"; // Reset classes
-            
+            document.getElementById("connection-status").style.display = "block";
+            dot.className = "status-indicator";
+
             if (status === 'connecting') {
                 dot.classList.add("status-connecting");
                 text.textContent = "Connecting...";
             } else if (status === 'connected') {
                 dot.classList.add("status-connected");
                 text.textContent = "Connected";
-            } else if (status === 'failed') {
+            } else {
                 dot.classList.add("status-failed");
                 text.textContent = "Failed";
             }
@@ -1321,54 +1229,35 @@
             const roomId = document.getElementById("room-id-input").value || Math.random().toString(36).substr(2, 9);
             document.getElementById("room-info").textContent = "Connecting to room: " + roomId;
             updateStatus('connecting');
-            
-            // We assume the user wants to call someone who has this room ID
-            // Note: This is a simplified connection. Usually you'd map Room IDs to Peer IDs in Firestore
-            // Here we just try to call the Peer directly if they are online and using that ID
-            
-            if(peer) {
-                navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-                    .then(stream => {
-                        myStream = stream;
-                        document.getElementById("local-video").srcObject = stream;
-                        
-                        // Wait a brief moment for ICE gathering to start
-                        setTimeout(() => {
-                            const call = peer.call(roomId, stream);
-                            currentCall = call; // Store reference
-                            
-                            call.on('stream', remoteStream => {
-                                document.getElementById("remote-video").srcObject = remoteStream;
-                                document.getElementById("video-overlay").style.display = "flex";
-                                updateStatus('connected');
-                            });
-                            
-                            call.on('close', () => {
-                                endCall();
-                            });
-                            
-                            call.on('error', (err) => {
-                                console.error("Call Error:", err);
-                                updateStatus('failed');
-                                alert("Call failed: " + err.type);
-                            });
-                            
-                            // Listen for ICE connection state changes
-                            call.on('iceconnectionstatechange', () => {
-                                if (call.peerConnection.iceConnectionState === 'connected' || call.peerConnection.iceConnectionState === 'completed') {
-                                    updateStatus('connected');
-                                } else if (call.peerConnection.iceConnectionState === 'failed') {
-                                    updateStatus('failed');
-                                }
-                            });
-                        }, 500); // Small delay to allow ICE candidates to gather
-                    })
-                    .catch(err => {
-                        console.error("Failed to get local stream", err);
-                        updateStatus('failed');
-                        alert("Could not start camera/mic.");
-                    });
-            }
+
+            if (!peer) return;
+
+            navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+                .then(stream => {
+                    myStream = stream;
+                    document.getElementById("local-video").srcObject = stream;
+                    setTimeout(() => {
+                        const call = peer.call(roomId, stream);
+                        currentCall = call;
+
+                        call.on('stream', remoteStream => {
+                            document.getElementById("remote-video").srcObject = remoteStream;
+                            document.getElementById("video-overlay").style.display = "flex";
+                            updateStatus('connected');
+                        });
+                        call.on('close', endCall);
+                        call.on('error', err => {
+                            console.error("Call Error:", err);
+                            updateStatus('failed');
+                            alert("Call failed: " + err.type);
+                        });
+                    }, 500);
+                })
+                .catch(err => {
+                    console.error("Failed to get local stream", err);
+                    updateStatus('failed');
+                    alert("Could not start camera/mic.");
+                });
         }
 
         function endCall() {
@@ -1386,65 +1275,59 @@
                 peer = null;
             }
             document.getElementById("call-modal").style.display = "none";
-            updateStatus('failed'); // Reset status
+            updateStatus('failed');
             setTimeout(() => {
                 document.getElementById("connection-status").style.display = "none";
             }, 2000);
         }
 
         function toggleMute() {
-            if (myStream) {
-                const audioTrack = myStream.getAudioTracks()[0];
-                audioTrack.enabled = !audioTrack.enabled;
-                document.querySelector(".btn-mute").textContent = audioTrack.enabled ? "🎤 Mute" : "🔊 Unmute";
-            }
+            if (!myStream) return;
+            const audioTrack = myStream.getAudioTracks()[0];
+            if (!audioTrack) return;
+            audioTrack.enabled = !audioTrack.enabled;
+            document.querySelector(".btn-mute").textContent = audioTrack.enabled ? "🎤 Mute" : "🔊 Unmute";
         }
 
         function closeCallModal() {
             document.getElementById("call-modal").style.display = "none";
         }
 
-        // --- In-Call Chat Integration ---
         const inCallInput = document.getElementById("in-call-input");
         const inCallMessages = document.getElementById("in-call-messages");
 
-        inCallInput.addEventListener("keypress", (e) => {
+        inCallInput.addEventListener("keypress", e => {
             if (e.key === "Enter") {
                 const text = inCallInput.value.trim();
-                if (text) {
-                    // Send to main chat
-                    db.collection("chats").doc(currentChatId).collection("messages").add({
-                        senderId: currentUser.uid,
-                        text: text,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                        chatId: currentChatId
-                    });
-                    inCallInput.value = "";
-                }
+                if (!text || !currentUser) return;
+                db.collection("chats").doc(currentChatId).collection("messages").add({
+                    senderId: currentUser.uid,
+                    text,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    chatId: currentChatId
+                });
+                inCallInput.value = "";
             }
         });
 
-        // --- Rules System ---
         function openRulesModal() {
             document.getElementById("rules-modal").style.display = "flex";
             document.getElementById("rules-channel-name").textContent = currentChatId.replace("dm-", "");
-            
-            // Load existing rules
             db.collection("chats").doc(currentChatId).get().then(doc => {
-                if (doc.exists) {
-                    document.getElementById("rules-textarea").value = doc.data().rules || "No rules set.";
-                } else {
-                    // Default rules if none exist
-                    const defaultRules = "1. Be respectful.\n2. No spamming.\n3. Keep it clean.";
-                    document.getElementById("rules-textarea").value = defaultRules;
-                }
+                document.getElementById("rules-textarea").value =
+                    doc.exists ? (doc.data().rules || "No rules set.") :
+                    "1. Be respectful.\n2. No spamming.\n3. Keep it clean.";
             });
         }
 
         function saveRules() {
             const rules = document.getElementById("rules-textarea").value;
-            db.collection("chats").doc(currentChatId).set({ rules }, { merge: true });
-            closeRulesModal();
+            db.collection("chats").doc(currentChatId).set({ rules }, { merge: true })
+                .then(closeRulesModal)
+                .catch(error => {
+                    console.error("Could not save rules:", error);
+                    alert("Could not save rules.");
+                });
         }
 
         function closeRulesModal() {
@@ -1453,81 +1336,43 @@
 
         document.getElementById("btn-rules").onclick = openRulesModal;
 
-        // --- Mod Tools ---
         function toggleModTools() {
             const panel = document.getElementById("mod-tools-panel");
             panel.style.display = panel.style.display === "block" ? "none" : "block";
         }
 
-        // FIXED: Add Moderator Logic
         async function addModerator() {
-            const uid = prompt("Enter User ID to make Moderator:");
-            if (!uid) return;
-
-            try {
-                const userRef = db.collection("users").doc(uid);
-                const doc = await userRef.get();
-
-                if (doc.exists) {
-                    await userRef.update({
-                        isModerator: true
-                    });
-                    alert(`${doc.data().username || uid} is now a moderator! 👑`);
-                } else {
-                    alert("User ID not found.");
-                }
-            } catch (error) {
-                console.error("Error adding moderator:", error);
-                alert("An error occurred while updating the user.");
-            }
+            alert("Moderator changes need to be handled by a trusted server; this action is disabled.");
         }
 
         function kickUser() {
-            const uid = prompt("Enter User ID to Kick:");
-            if (uid) {
-                // Simple kick: remove from friends or ban from chat
-                // For now, just log it
-                alert(`Kicked user ${uid}`);
-            }
+            alert("Kick feature is not implemented.");
         }
 
         function banUser() {
-            const uid = prompt("Enter User ID to Ban:");
-            if (uid) {
-                db.collection("users").doc(uid).update({
-                    banned: true
-                });
-                alert(`Banned user ${uid}`);
-            }
+            alert("Ban changes need to be handled by a trusted server; this action is disabled.");
         }
 
         document.getElementById("btn-mod").onclick = toggleModTools;
 
-        // --- Emoji Picker ---
         function initEmojiPicker() {
             const pickerButton = document.getElementById("emoji-trigger");
             const container = document.getElementById("emoji-picker-container");
-            
+
             pickerButton.onclick = () => {
                 if (!emojiPicker) {
-                    emojiPicker = new EmojiButton({
-                        theme: 'auto',
-                        position: 'top-start'
-                    });
+                    emojiPicker = new EmojiButton({ theme: 'auto', position: 'top-start' });
                     emojiPicker.init(container);
+                    emojiPicker.on('emoji', selection => {
+                        const input = document.getElementById("msg-input");
+                        input.value += selection.emoji;
+                        input.focus();
+                    });
                 }
-                
                 emojiPicker.togglePicker(pickerButton);
-                
-                emojiPicker.on('emoji', selection => {
-                    const input = document.getElementById("msg-input");
-                    input.value += selection.emoji;
-                    input.focus();
-                });
             };
         }
 
-        // --- Dev Mode ---
         function setupDevMode() {
             document.addEventListener("keydown", e => {
                 if (e.shiftKey && e.key === "Enter") {
@@ -1540,39 +1385,29 @@
 
             document.addEventListener("click", e => {
                 const msg = e.target.closest(".message");
-                if (msg) {
-                    currentMsgId = msg.dataset.id;
-                }
+                if (msg) currentMsgId = msg.dataset.id;
             });
         }
 
         function deleteMessage() {
-            if (currentMsgId) {
-                db.collection("chats").doc(currentChatId).collection("messages").doc(currentMsgId).delete();
-                alert("Message deleted.");
-            }
+            if (!currentMsgId) return;
+            db.collection("chats").doc(currentChatId).collection("messages").doc(currentMsgId).delete();
         }
 
         function editMessage() {
-            if (currentMsgId) {
-                const newText = prompt("Enter new message text:");
-                if (newText !== null) {
-                    db.collection("chats").doc(currentChatId).collection("messages").doc(currentMsgId).update({
-                        text: newText
-                    });
-                }
+            if (!currentMsgId) return;
+            const newText = prompt("Enter new message text:");
+            if (newText !== null) {
+                db.collection("chats").doc(currentChatId).collection("messages").doc(currentMsgId).update({ text: newText });
             }
         }
 
         function showRawData() {
-            if (currentMsgId) {
-                db.collection("chats").doc(currentChatId).collection("messages").doc(currentMsgId).get().then(doc => {
-                    alert(JSON.stringify(doc.data(), null, 2));
-                });
-            }
+            if (!currentMsgId) return;
+            db.collection("chats").doc(currentChatId).collection("messages").doc(currentMsgId).get()
+                .then(doc => alert(JSON.stringify(doc.data(), null, 2)));
         }
 
-        // --- Channel Management ---
         function openChannelModal() {
             document.getElementById("channel-modal").style.display = "flex";
         }
@@ -1583,40 +1418,41 @@
 
         function createChannel() {
             const name = document.getElementById("new-channel-name").value.trim();
-            if (name) {
-                const channelId = name.toLowerCase().replace(/\s+/g, "-");
-                db.collection("chats").doc(channelId).set({
-                    name: name,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
+            if (!name) return;
+
+            const channelId = name.toLowerCase().replace(/\s+/g, "-");
+            db.collection("chats").doc(channelId).set({
+                name,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
                 closeChannelModal();
-                // Refresh channels
-                renderFriends(); // Re-using renderFriends to add channel, or create specific renderChannels
-                // For now, let's just add it to the list manually
-                const container = document.getElementById("channels-container");
-                const item = document.createElement("div");
-                item.className = "channel-item";
-                item.innerHTML = `<span class="channel-hash">#</span> ${name}`;
-                item.onclick = () => switchChat(channelId);
-                container.appendChild(item);
+                renderFriends();
                 switchChat(channelId);
-            }
+            }).catch(error => {
+                console.error("Could not create channel:", error);
+                alert("Could not create channel.");
+            });
         }
 
-        // --- Logout ---
-        document.getElementById("logout-btn").onclick = () => {
-            auth.signOut().then(() => {
-                window.location.href = "index.html";
-            });
-        };
+        document.getElementById("logout-btn").addEventListener("click", async () => {
+            const button = document.getElementById("logout-btn");
+            button.disabled = true;
+            button.textContent = "Signing out…";
 
-        // --- Input Submit Listener ---
-        document.getElementById("msg-input").addEventListener("keypress", (e) => {
-            if (e.key === "Enter") {
-                sendMessage();
+            try {
+                await auth.signOut();
+                window.location.href = "index.html";
+            } catch (error) {
+                console.error("Sign-out failed:", error);
+                button.disabled = false;
+                button.textContent = "Log Out";
+                alert("Could not sign out. Please try again.");
             }
         });
 
+        document.getElementById("msg-input").addEventListener("keypress", e => {
+            if (e.key === "Enter") sendMessage();
+        });
     </script>
 </body>
 </html>
