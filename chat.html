@@ -1481,6 +1481,7 @@
             }
         }
 
+        // ===== UPDATED addCallTile (better video support) =====
         function addCallTile(uid, name, stream, muted = false) {
             const grid = document.getElementById("call-participants");
             let tile = document.getElementById(`call-tile-${uid}`);
@@ -1493,7 +1494,9 @@
                 const video = document.createElement("video");
                 video.autoplay = true;
                 video.playsInline = true;
-                video.muted = muted;
+                video.setAttribute("playsinline", "true");
+                video.setAttribute("webkit-playsinline", "true");
+                video.muted = muted; // only mute yourself
 
                 const label = document.createElement("div");
                 label.className = "call-tile-name";
@@ -1504,9 +1507,18 @@
             }
 
             const video = tile.querySelector("video");
+
             if (video.srcObject !== stream) {
                 video.srcObject = stream;
-                video.play().catch(() => {});
+
+                // Force play (helps a lot on phones)
+                const playPromise = video.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(() => {
+                        // Autoplay blocked — try again after a short delay
+                        setTimeout(() => video.play().catch(() => {}), 300);
+                    });
+                }
             }
         }
 
@@ -1540,10 +1552,11 @@
                 pc.addTrack(track, localCallStream);
             });
 
+            // ===== UPDATED ontrack (so you can see the other person) =====
             pc.ontrack = event => {
-                const stream = event.streams?.[0];
+                const stream = event.streams?.[0] || new MediaStream([event.track]);
                 if (stream) {
-                    addCallTile(otherUid, participantData?.name || "Participant", stream);
+                    addCallTile(otherUid, participantData?.name || "Participant", stream, false);
                 }
             };
 
