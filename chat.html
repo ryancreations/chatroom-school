@@ -8,8 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <!-- PeerJS for Video Calls -->
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <!-- Emoji Button -->
     <script src="https://cdn.jsdelivr.net/npm/@joeattardi/emoji-button@3.0.3/dist/index.min.js"></script>
     
@@ -513,47 +512,89 @@
         }
         .close-btn:hover { color: white; }
 
-        /* --- Call Overlay --- */
+        /* --- Group Call Overlay --- */
         #video-overlay {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            inset: 0;
             background: #18191C;
             z-index: 500;
             display: none;
             flex-direction: column;
+            color: white;
         }
 
-        #remote-video {
+        #call-header {
+            min-height: 50px;
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            background: #202225;
+            box-sizing: border-box;
+        }
+
+        #group-call-status,
+        #group-call-room-label {
+            font-size: 13px;
+        }
+
+        #group-call-room-label {
+            color: #B9BBBE;
+            overflow-wrap: anywhere;
+            text-align: right;
+        }
+
+        #call-participants {
+            flex: 1;
+            min-height: 0;
+            padding: 12px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        .call-tile {
+            position: relative;
+            min-height: 180px;
+            background: #25262A;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .call-tile video {
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            min-height: 180px;
+            display: block;
+            object-fit: cover;
         }
 
-        #local-video {
+        .call-tile-name {
             position: absolute;
-            bottom: 20px;
-            right: 20px;
-            width: 200px;
-            height: 150px;
-            background: #000;
-            border-radius: 8px;
-            object-fit: cover;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            z-index: 510;
+            bottom: 8px;
+            left: 8px;
+            padding: 5px 8px;
+            border-radius: 5px;
+            background: rgba(0, 0, 0, .7);
+            color: white;
+            font-size: 13px;
         }
 
         .call-controls {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
+            position: static;
+            transform: none;
             display: flex;
+            justify-content: center;
             gap: 10px;
+            padding: 12px;
             z-index: 520;
         }
 
         .call-btn {
-            padding: 10px 20px;
+            padding: 10px 18px;
             border: none;
             border-radius: 20px;
             cursor: pointer;
@@ -562,6 +603,19 @@
 
         .btn-hangup { background: #ED4245; color: white; }
         .btn-mute { background: #40444B; color: white; }
+
+        @media (max-width: 600px) {
+            #call-participants {
+                grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+                padding: 8px;
+                gap: 8px;
+            }
+
+            .call-tile,
+            .call-tile video {
+                min-height: 145px;
+            }
+        }
 
         /* --- In-Call Chat Box --- */
         #in-call-chat {
@@ -795,33 +849,38 @@
         </div>
     </div>
 
-    <!-- Call Overlay -->
+    <!-- Group Call Overlay -->
     <div id="video-overlay">
-        <video id="remote-video" autoplay playsinline></video>
-        <video id="local-video" autoplay muted playsinline></video>
-        <div class="call-controls">
-            <button class="call-btn btn-mute" onclick="toggleMute()">🎤 Mute</button>
-            <button class="call-btn btn-hangup" onclick="endCall()">📞 Hang Up</button>
+        <div id="call-header">
+            <span id="group-call-status">Not connected</span>
+            <span id="group-call-room-label"></span>
         </div>
-        <div id="in-call-chat">
-            <div id="in-call-messages"></div>
-            <input type="text" id="in-call-input" placeholder="Type in call...">
+        <div id="call-participants"></div>
+        <div class="call-controls">
+            <button class="call-btn btn-mute" id="mute-call-btn" type="button">🎤 Mute</button>
+            <button class="call-btn btn-hangup" id="hangup-call-btn" type="button">📞 Leave Call</button>
         </div>
     </div>
 
-    <!-- Call Modal -->
+    <!-- Group Call Modal -->
     <div id="call-modal" class="modal">
         <div class="modal-content">
-            <button class="close-btn" onclick="closeCallModal()">✕</button>
-            <h3 class="modal-title">Start Call</h3>
-            <div id="my-peer-id" style="margin-bottom: 10px; font-size: 12px;"></div>
-            <div id="connection-status" style="margin-bottom: 10px; font-size: 12px; display: none;">
-                <span id="status-dot" class="status-indicator status-connecting"></span>
-                <span id="status-text">Connecting...</span>
-            </div>
-            <input type="text" id="room-id-input" class="setting-input" placeholder="Enter Room ID or Leave Empty to Create">
-            <button class="stealth-btn" onclick="createOrJoinRoom()" style="width:100%; margin-top:10px;">Connect</button>
-            <div id="room-info" style="margin-top: 10px; font-size: 12px;"></div>
+            <button class="close-btn" id="close-call-modal" type="button">✕</button>
+            <h3 class="modal-title">Group Call</h3>
+            <p style="font-size:12px; margin-bottom:10px;">
+                Enter the same room name as the other participants.
+            </p>
+            <input
+                type="text"
+                id="room-id-input"
+                class="setting-input"
+                placeholder="Room name (blank uses current chat)"
+                autocomplete="off"
+            >
+            <div id="call-status" style="margin:10px 0; font-size:12px;"></div>
+            <button class="stealth-btn" id="join-call-btn" type="button" style="width:100%;">
+                Create / Join Call
+            </button>
         </div>
     </div>
 
@@ -870,26 +929,28 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+        const rtdb = firebase.database();
 
         let currentUser = null;
         let currentChatId = "general";
-        let peer = null;
-        let myStream = null;
-        let activeRoomId = null;
         let currentMsgId = null;
         let emojiPicker = null;
-        let currentCall = null;
 
-        const iceConfig = {
+        // Group call state
+        let groupRoomId = null;
+        let groupRoomRef = null;
+        let groupParticipantRef = null;
+        let groupParticipantsListener = null;
+        let localCallStream = null;
+        let leavingGroupCall = false;
+        const groupPeers = new Map();
+
+        const groupIceConfig = {
             iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' },
-                { urls: 'stun:stun2.l.google.com:19302' },
-                { urls: 'stun:stun3.l.google.com:19302' },
-                { urls: 'stun:stun4.l.google.com:19302' }
-            ],
-            iceTransportPolicy: 'all',
-            sdpSemantics: 'unified-plan'
+                { urls: "stun:stun.l.google.com:19302" },
+                { urls: "stun:stun1.l.google.com:19302" }
+                // Add a TURN server for more reliable connectivity across restrictive networks.
+            ]
         };
 
         auth.onAuthStateChanged(user => {
@@ -1165,150 +1226,381 @@
             }
         };
 
-        function initPeer() {
-            if (peer) return;
-            peer = new Peer(undefined, iceConfig);
-
-            peer.on('open', id => {
-                document.getElementById("my-peer-id").textContent = "Your ID: " + id;
-            });
-
-            peer.on('call', call => {
-                updateStatus('connecting');
-                navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-                    .then(stream => {
-                        myStream = stream;
-                        document.getElementById("local-video").srcObject = stream;
-                        call.answer(stream);
-                        call.on('stream', remoteStream => {
-                            document.getElementById("remote-video").srcObject = remoteStream;
-                            document.getElementById("video-overlay").style.display = "flex";
-                            updateStatus('connected');
-                        });
-                        call.on('close', endCall);
-                    })
-                    .catch(err => {
-                        console.error("Failed to get local stream", err);
-                        updateStatus('failed');
-                        alert("Could not start camera/mic.");
-                    });
-            });
-
-            peer.on('disconnected', () => updateStatus('failed'));
-            peer.on('error', err => {
-                console.error("PeerJS Error:", err);
-                updateStatus('failed');
-                alert("Connection error: " + err.type);
-            });
-        }
-
-        function updateStatus(status) {
-            const dot = document.getElementById("status-dot");
-            const text = document.getElementById("status-text");
-            document.getElementById("connection-status").style.display = "block";
-            dot.className = "status-indicator";
-
-            if (status === 'connecting') {
-                dot.classList.add("status-connecting");
-                text.textContent = "Connecting...";
-            } else if (status === 'connected') {
-                dot.classList.add("status-connected");
-                text.textContent = "Connected";
-            } else {
-                dot.classList.add("status-failed");
-                text.textContent = "Failed";
-            }
-        }
+        // --- Group WebRTC Calls ---
+        const callModal = document.getElementById("call-modal");
+        const callOverlay = document.getElementById("video-overlay");
+        const joinCallButton = document.getElementById("join-call-btn");
+        const callLeaveButton = document.getElementById("hangup-call-btn");
+        const callMuteButton = document.getElementById("mute-call-btn");
 
         document.getElementById("btn-call").onclick = () => {
-            initPeer();
-            document.getElementById("call-modal").style.display = "flex";
+            if (!currentUser) {
+                alert("Please sign in before starting a call.");
+                return;
+            }
+            document.getElementById("room-id-input").value = currentChatId || "general";
+            document.getElementById("call-status").textContent = "Enter a shared room name to call.";
+            callModal.style.display = "flex";
         };
 
-        function createOrJoinRoom() {
-            const roomId = document.getElementById("room-id-input").value || Math.random().toString(36).substr(2, 9);
-            document.getElementById("room-info").textContent = "Connecting to room: " + roomId;
-            updateStatus('connecting');
+        document.getElementById("close-call-modal").onclick = () => {
+            callModal.style.display = "none";
+        };
 
-            if (!peer) return;
+        joinCallButton.onclick = joinGroupCall;
+        callLeaveButton.onclick = leaveGroupCall;
 
-            navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-                .then(stream => {
-                    myStream = stream;
-                    document.getElementById("local-video").srcObject = stream;
-                    setTimeout(() => {
-                        const call = peer.call(roomId, stream);
-                        currentCall = call;
+        callMuteButton.onclick = () => {
+            const track = localCallStream?.getAudioTracks()[0];
+            if (!track) return;
+            track.enabled = !track.enabled;
+            callMuteButton.textContent = track.enabled ? "🎤 Mute" : "🔊 Unmute";
+        };
 
-                        call.on('stream', remoteStream => {
-                            document.getElementById("remote-video").srcObject = remoteStream;
-                            document.getElementById("video-overlay").style.display = "flex";
-                            updateStatus('connected');
-                        });
-                        call.on('close', endCall);
-                        call.on('error', err => {
-                            console.error("Call Error:", err);
-                            updateStatus('failed');
-                            alert("Call failed: " + err.type);
-                        });
-                    }, 500);
-                })
-                .catch(err => {
-                    console.error("Failed to get local stream", err);
-                    updateStatus('failed');
-                    alert("Could not start camera/mic.");
+        function setCallStatus(message) {
+            document.getElementById("group-call-status").textContent = message;
+            document.getElementById("call-status").textContent = message;
+        }
+
+        function sanitizeRoomId(value) {
+            return value.trim().toLowerCase()
+                .replace(/[^a-z0-9_-]/g, "-")
+                .replace(/-+/g, "-")
+                .slice(0, 80);
+        }
+
+        async function joinGroupCall() {
+            if (!currentUser || groupRoomId) return;
+
+            const inputValue = document.getElementById("room-id-input").value || currentChatId || "general";
+            const roomId = sanitizeRoomId(inputValue);
+
+            if (!roomId) {
+                setCallStatus("Enter a valid room name.");
+                return;
+            }
+
+            joinCallButton.disabled = true;
+            setCallStatus("Requesting camera and microphone…");
+
+            try {
+                localCallStream = await navigator.mediaDevices.getUserMedia({
+                    audio: true,
+                    video: true
                 });
-        }
 
-        function endCall() {
-            document.getElementById("video-overlay").style.display = "none";
-            if (myStream) {
-                myStream.getTracks().forEach(track => track.stop());
-                myStream = null;
+                groupRoomId = roomId;
+                groupRoomRef = rtdb.ref(`groupCalls/${roomId}`);
+                groupParticipantRef = groupRoomRef.child(`participants/${currentUser.uid}`);
+
+                let displayName = currentUser.displayName || "User";
+                try {
+                    const userDoc = await db.collection("users").doc(currentUser.uid).get();
+                    displayName = userDoc.data()?.username || displayName;
+                } catch (error) {
+                    console.warn("Could not load call display name:", error);
+                }
+
+                addCallTile(currentUser.uid, `${displayName} (You)`, localCallStream, true);
+
+                await groupParticipantRef.set({
+                    uid: currentUser.uid,
+                    name: displayName,
+                    joinedAt: firebase.database.ServerValue.TIMESTAMP
+                });
+
+                await groupParticipantRef.onDisconnect().remove();
+
+                callModal.style.display = "none";
+                callOverlay.style.display = "flex";
+                document.getElementById("group-call-room-label").textContent = `Room: ${roomId}`;
+
+                groupParticipantsListener = snapshot => {
+                    const currentIds = new Set();
+
+                    snapshot.forEach(child => {
+                        const uid = child.key;
+                        if (!uid) return;
+                        currentIds.add(uid);
+
+                        if (uid !== currentUser.uid) {
+                            ensureGroupPeer(uid, child.val());
+                        }
+                    });
+
+                    for (const uid of groupPeers.keys()) {
+                        if (!currentIds.has(uid)) {
+                            closeGroupPeer(uid);
+                            removeCallTile(uid);
+                        }
+                    }
+
+                    const count = snapshot.numChildren();
+                    setCallStatus(`${count} participant${count === 1 ? "" : "s"} in room`);
+                };
+
+                groupRoomRef.child("participants").on("value", groupParticipantsListener);
+            } catch (error) {
+                console.error("Could not join the group call:", error);
+                await leaveGroupCall();
+
+                if (error?.name === "NotAllowedError" || error?.name === "PermissionDeniedError") {
+                    alert("Camera or microphone permission was denied.");
+                } else {
+                    alert("Could not join. Check camera permissions and Realtime Database configuration/rules.");
+                }
+            } finally {
+                joinCallButton.disabled = false;
             }
-            if (currentCall) {
-                currentCall.close();
-                currentCall = null;
+        }
+
+        function addCallTile(uid, name, stream, muted = false) {
+            const grid = document.getElementById("call-participants");
+            let tile = document.getElementById(`call-tile-${uid}`);
+
+            if (!tile) {
+                tile = document.createElement("div");
+                tile.className = "call-tile";
+                tile.id = `call-tile-${uid}`;
+
+                const video = document.createElement("video");
+                video.autoplay = true;
+                video.playsInline = true;
+                video.muted = muted;
+
+                const label = document.createElement("div");
+                label.className = "call-tile-name";
+                label.textContent = name || "Participant";
+
+                tile.append(video, label);
+                grid.appendChild(tile);
             }
-            if (peer) {
-                peer.disconnect();
-                peer = null;
+
+            const video = tile.querySelector("video");
+            if (video.srcObject !== stream) {
+                video.srcObject = stream;
+                video.play().catch(() => {});
             }
-            document.getElementById("call-modal").style.display = "none";
-            updateStatus('failed');
-            setTimeout(() => {
-                document.getElementById("connection-status").style.display = "none";
-            }, 2000);
         }
 
-        function toggleMute() {
-            if (!myStream) return;
-            const audioTrack = myStream.getAudioTracks()[0];
-            if (!audioTrack) return;
-            audioTrack.enabled = !audioTrack.enabled;
-            document.querySelector(".btn-mute").textContent = audioTrack.enabled ? "🎤 Mute" : "🔊 Unmute";
+        function removeCallTile(uid) {
+            document.getElementById(`call-tile-${uid}`)?.remove();
         }
 
-        function closeCallModal() {
-            document.getElementById("call-modal").style.display = "none";
+        function groupPairId(uidA, uidB) {
+            return [uidA, uidB].sort().join("_");
         }
 
+        async function ensureGroupPeer(otherUid, participantData) {
+            if (!groupRoomRef || !currentUser || groupPeers.has(otherUid)) return;
+
+            const pairRef = groupRoomRef.child(`pairs/${groupPairId(currentUser.uid, otherUid)}`);
+            const isOfferer = currentUser.uid < otherUid;
+            const pc = new RTCPeerConnection(groupIceConfig);
+
+            const state = {
+                pc,
+                pairRef,
+                listeners: [],
+                candidateQueue: [],
+                remoteDescriptionSet: false,
+                closed: false
+            };
+
+            groupPeers.set(otherUid, state);
+
+            localCallStream?.getTracks().forEach(track => {
+                pc.addTrack(track, localCallStream);
+            });
+
+            pc.ontrack = event => {
+                const stream = event.streams?.[0];
+                if (stream) {
+                    addCallTile(otherUid, participantData?.name || "Participant", stream);
+                }
+            };
+
+            pc.onconnectionstatechange = () => {
+                if (pc.connectionState === "connected") {
+                    setCallStatus("Call connected");
+                } else if (pc.connectionState === "failed") {
+                    setCallStatus("Connection failed. A TURN server may be required.");
+                }
+            };
+
+            const offerRef = pairRef.child("offer");
+            const answerRef = pairRef.child("answer");
+            const localCandidatesRef = pairRef.child(isOfferer ? "offerCandidates" : "answerCandidates");
+            const remoteCandidatesRef = pairRef.child(isOfferer ? "answerCandidates" : "offerCandidates");
+
+            pc.onicecandidate = event => {
+                if (!event.candidate || state.closed) return;
+                localCandidatesRef.push(event.candidate.toJSON()).catch(error => {
+                    console.warn("Could not write ICE candidate:", error);
+                });
+            };
+
+            const onCandidate = snapshot => {
+                const value = snapshot.val();
+                if (!value || state.closed) return;
+
+                const candidate = new RTCIceCandidate(value);
+                if (!state.remoteDescriptionSet) {
+                    state.candidateQueue.push(candidate);
+                } else {
+                    pc.addIceCandidate(candidate).catch(error => {
+                        console.warn("Could not add ICE candidate:", error);
+                    });
+                }
+            };
+
+            remoteCandidatesRef.on("child_added", onCandidate);
+            state.listeners.push([remoteCandidatesRef, "child_added", onCandidate]);
+
+            async function setRemoteDescription(description) {
+                if (state.closed || !description || pc.remoteDescription) return;
+
+                await pc.setRemoteDescription(new RTCSessionDescription(description));
+                state.remoteDescriptionSet = true;
+
+                for (const candidate of state.candidateQueue.splice(0)) {
+                    try {
+                        await pc.addIceCandidate(candidate);
+                    } catch (error) {
+                        console.warn("Could not add queued ICE candidate:", error);
+                    }
+                }
+            }
+
+            if (isOfferer) {
+                try {
+                    const offer = await pc.createOffer();
+                    await pc.setLocalDescription(offer);
+
+                    await offerRef.set({
+                        type: offer.type,
+                        sdp: offer.sdp
+                    });
+
+                    const onAnswer = async snapshot => {
+                        const answer = snapshot.val();
+                        if (!answer || state.closed) return;
+
+                        try {
+                            await setRemoteDescription(answer);
+                        } catch (error) {
+                            console.error("Could not set remote answer:", error);
+                        }
+                    };
+
+                    answerRef.on("value", onAnswer);
+                    state.listeners.push([answerRef, "value", onAnswer]);
+                } catch (error) {
+                    console.error("Could not create offer:", error);
+                    closeGroupPeer(otherUid);
+                }
+            } else {
+                const onOffer = async snapshot => {
+                    const offer = snapshot.val();
+                    if (!offer || state.closed || pc.signalingState !== "stable") return;
+
+                    try {
+                        await setRemoteDescription(offer);
+
+                        const answer = await pc.createAnswer();
+                        await pc.setLocalDescription(answer);
+                        await answerRef.set({
+                            type: answer.type,
+                            sdp: answer.sdp
+                        });
+                    } catch (error) {
+                        console.error("Could not answer offer:", error);
+                    }
+                };
+
+                offerRef.on("value", onOffer);
+                state.listeners.push([offerRef, "value", onOffer]);
+            }
+        }
+
+        function closeGroupPeer(uid) {
+            const state = groupPeers.get(uid);
+            if (!state) return;
+
+            state.closed = true;
+
+            for (const [ref, eventName, handler] of state.listeners) {
+                ref.off(eventName, handler);
+            }
+
+            state.pc.ontrack = null;
+            state.pc.onicecandidate = null;
+            state.pc.onconnectionstatechange = null;
+            state.pc.close();
+
+            groupPeers.delete(uid);
+        }
+
+        async function leaveGroupCall() {
+            if (leavingGroupCall) return;
+            leavingGroupCall = true;
+
+            if (groupRoomRef && groupParticipantsListener) {
+                groupRoomRef.child("participants").off("value", groupParticipantsListener);
+            }
+
+            for (const uid of [...groupPeers.keys()]) {
+                closeGroupPeer(uid);
+            }
+
+            if (groupParticipantRef) {
+                try {
+                    await groupParticipantRef.onDisconnect().cancel();
+                    await groupParticipantRef.remove();
+                } catch (error) {
+                    console.warn("Could not clean up call membership:", error);
+                }
+            }
+
+            if (localCallStream) {
+                localCallStream.getTracks().forEach(track => track.stop());
+            }
+
+            localCallStream = null;
+            groupRoomId = null;
+            groupRoomRef = null;
+            groupParticipantRef = null;
+            groupParticipantsListener = null;
+
+            callOverlay.style.display = "none";
+            callModal.style.display = "none";
+            document.getElementById("call-participants").innerHTML = "";
+            document.getElementById("group-call-room-label").textContent = "";
+            callMuteButton.textContent = "🎤 Mute";
+            setCallStatus("Not connected");
+
+            leavingGroupCall = false;
+        }
+
+        // Original in-call chat handlers retained.
         const inCallInput = document.getElementById("in-call-input");
         const inCallMessages = document.getElementById("in-call-messages");
 
-        inCallInput.addEventListener("keypress", e => {
-            if (e.key === "Enter") {
-                const text = inCallInput.value.trim();
-                if (!text || !currentUser) return;
-                db.collection("chats").doc(currentChatId).collection("messages").add({
-                    senderId: currentUser.uid,
-                    text,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    chatId: currentChatId
-                });
-                inCallInput.value = "";
-            }
-        });
+        if (inCallInput) {
+            inCallInput.addEventListener("keypress", e => {
+                if (e.key === "Enter") {
+                    const text = inCallInput.value.trim();
+                    if (!text || !currentUser) return;
+                    db.collection("chats").doc(currentChatId).collection("messages").add({
+                        senderId: currentUser.uid,
+                        text,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        chatId: currentChatId
+                    });
+                    inCallInput.value = "";
+                }
+            });
+        }
 
         function openRulesModal() {
             document.getElementById("rules-modal").style.display = "flex";
