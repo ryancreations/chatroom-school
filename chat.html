@@ -1353,7 +1353,7 @@
             }
         };
 
-        // --- Group WebRTC Calls ---
+       // --- Group WebRTC Calls: Firestore signaling ---
         const callModal = document.getElementById("call-modal");
         const callOverlay = document.getElementById("video-overlay");
         const joinCallButton = document.getElementById("join-call-btn");
@@ -1366,7 +1366,8 @@
                 return;
             }
             document.getElementById("room-id-input").value = currentChatId || "general";
-            document.getElementById("call-status").textContent = "Enter a shared room name to call.";
+            document.getElementById("call-status").textContent =
+                "Enter the same room name as the other participants.";
             callModal.style.display = "flex";
         };
 
@@ -1396,11 +1397,50 @@
                 .slice(0, 80);
         }
 
+        function addCallTile(uid, name, stream, muted = false) {
+            const grid = document.getElementById("call-participants");
+            let tile = document.getElementById(`call-tile-${uid}`);
+
+            if (!tile) {
+                tile = document.createElement("div");
+                tile.className = "call-tile";
+                tile.id = `call-tile-${uid}`;
+
+                const video = document.createElement("video");
+                video.autoplay = true;
+                video.playsInline = true;
+                video.setAttribute("playsinline", "true");
+                video.muted = muted;
+
+                const label = document.createElement("div");
+                label.className = "call-tile-name";
+                label.textContent = name || "Participant";
+
+                tile.append(video, label);
+                grid.appendChild(tile);
+            }
+
+            const video = tile.querySelector("video");
+            if (video.srcObject !== stream) {
+                video.srcObject = stream;
+                video.play().catch(() => {});
+            }
+        }
+
+        function removeCallTile(uid) {
+            document.getElementById(`call-tile-${uid}`)?.remove();
+        }
+
+        function callPairId(uidA, uidB) {
+            return [uidA, uidB].sort().join("__");
+        }
+
         async function joinGroupCall() {
             if (!currentUser || groupRoomId) return;
 
-            const inputValue = document.getElementById("room-id-input").value || currentChatId || "general";
-            const roomId = sanitizeRoomId(inputValue);
+            const roomId = sanitizeRoomId(
+                document.getElementById("room-id-input").value || currentChatId || "general"
+            );
 
             if (!roomId) {
                 setCallStatus("Enter a valid room name.");
@@ -1417,13 +1457,14 @@
                 });
 
                 groupRoomId = roomId;
-                groupRoomRef = rtdb.ref(`groupCalls/${roomId}`);
-                groupParticipantRef = groupRoomRef.child(`participants/${currentUser.uid}`);
+                groupRoomRef = db.collection("callRooms").doc(roomId);
+                groupParticipantRef =
+                    groupRoomRef.collection("participants").doc(currentUser.uid);
 
                 let displayName = currentUser.displayName || "User";
                 try {
-                    const userDoc = await db.collection("users").doc(currentUser.uid).get();
-                    displayName = userDoc.data()?.username || displayName;
+                    const profile = await db.collection("users").doc(currentUser.uid).get();
+                    displayName = profile.data()?.username || displayName;
                 } catch (error) {
                     console.warn("Could not load call display name:", error);
                 }
@@ -1433,131 +1474,75 @@
                 await groupParticipantRef.set({
                     uid: currentUser.uid,
                     name: displayName,
-                    joinedAt: firebase.database.ServerValue.TIMESTAMP
+                    joinedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
-
-                await groupParticipantRef.onDisconnect().remove();
 
                 callModal.style.display = "none";
                 callOverlay.style.display = "flex";
-                document.getElementById("group-call-room-label").textContent = `Room: ${roomId}`;
+                document.getElementById("group-call-room-label").textContent =
+                    `Room: ${roomId}`;
 
-                groupParticipantsListener = snapshot => {
-                    const currentIds = new Set();
+                groupParticipantsUnsubscribe =
+                    groupRoomRef.collection("participants").onSnapshot(snapshot => {
+                        const activeIds = new Set();
 
-                    snapshot.forEach(child => {
-                        const uid = child.key;
-                        if (!uid) return;
-                        currentIds.add(uid);
+                        snapshot.forEach(doc => {
+                            activeIds.add(doc.id);
+                            if (doc.id !== currentUser.uid) {
+                                ensureGroupPeer(doc.id, doc.data());
+                            }
+                        });
 
-                        if (uid !== currentUser.uid) {
-                            ensureGroupPeer(uid, child.val());
+                        for (const uid of [...groupPeers.keys()]) {
+                            if (!activeIds.has(uid)) {
+                                closeGroupPeer(uid);
+                                removeCallTile(uid);
+                            }
                         }
+
+                        const count = snapshot.size;
+                        setCallStatus(`${count} participant${count === 1 ? "" : "s"} in room`);
+                    }, error => {
+                        console.error("Call participant listener failed:", error);
+                        setCallStatus(`Call error: ${error.message}`);
                     });
-
-                    for (const uid of groupPeers.keys()) {
-                        if (!currentIds.has(uid)) {
-                            closeGroupPeer(uid);
-                            removeCallTile(uid);
-                        }
-                    }
-
-                    const count = snapshot.numChildren();
-                    setCallStatus(`${count} participant${count === 1 ? "" : "s"} in room`);
-                };
-
-                groupRoomRef.child("participants").on("value", groupParticipantsListener);
             } catch (error) {
-                console.error("Could not join the group call:", error);
-                await leaveGroupCall();
+                console.error("Could not join call:", error);
 
-                if (error?.name === "NotAllowedError" || error?.name === "PermissionDeniedError") {
-                    alert("Camera or microphone permission was denied.");
-                } else {
-                    alert("Could not join. Check camera permissions and Realtime Database configuration/rules.");
-                }
+                localCallStream?.getTracks().forEach(track => track.stop());
+                localCallStream = null;
+                groupRoomId = null;
+                groupRoomRef = null;
+                groupParticipantRef = null;
+
+                setCallStatus(`Could not join: ${error.message || error}`);
             } finally {
                 joinCallButton.disabled = false;
             }
         }
 
-        // ===== UPDATED addCallTile (better video support) =====
-        function addCallTile(uid, name, stream, muted = false) {
-            const grid = document.getElementById("call-participants");
-            let tile = document.getElementById(`call-tile-${uid}`);
-
-            if (!tile) {
-                tile = document.createElement("div");
-                tile.className = "call-tile";
-                tile.id = `call-tile-${uid}`;
-
-                const video = document.createElement("video");
-                video.autoplay = true;
-                video.playsInline = true;
-                video.setAttribute("playsinline", "true");
-                video.setAttribute("webkit-playsinline", "true");
-                video.muted = muted; // only mute yourself
-
-                const label = document.createElement("div");
-                label.className = "call-tile-name";
-                label.textContent = name || "Participant";
-
-                tile.append(video, label);
-                grid.appendChild(tile);
-            }
-
-            const video = tile.querySelector("video");
-
-            if (video.srcObject !== stream) {
-                video.srcObject = stream;
-
-                // Force play (helps a lot on phones)
-                const playPromise = video.play();
-                if (playPromise !== undefined) {
-                    playPromise.catch(() => {
-                        // Autoplay blocked — try again after a short delay
-                        setTimeout(() => video.play().catch(() => {}), 300);
-                    });
-                }
-            }
-        }
-
-        function removeCallTile(uid) {
-            document.getElementById(`call-tile-${uid}`)?.remove();
-        }
-
-        function groupPairId(uidA, uidB) {
-            return [uidA, uidB].sort().join("_");
-        }
-
         async function ensureGroupPeer(otherUid, participantData) {
             if (!groupRoomRef || !currentUser || groupPeers.has(otherUid)) return;
 
-            const pairRef = groupRoomRef.child(`pairs/${groupPairId(currentUser.uid, otherUid)}`);
+            const pairId = callPairId(currentUser.uid, otherUid);
+            const pairRef = groupRoomRef.collection("pairs").doc(pairId);
             const isOfferer = currentUser.uid < otherUid;
             const pc = new RTCPeerConnection(groupIceConfig);
 
             const state = {
                 pc,
-                pairRef,
                 listeners: [],
                 candidateQueue: [],
                 remoteDescriptionSet: false,
                 closed: false
             };
-
             groupPeers.set(otherUid, state);
 
-            localCallStream?.getTracks().forEach(track => {
-                pc.addTrack(track, localCallStream);
-            });
+            localCallStream?.getTracks().forEach(track => pc.addTrack(track, localCallStream));
 
-            // ===== UPDATED ontrack (so you can see the other person) =====
             pc.ontrack = event => {
                 const stream = event.streams?.[0] || new MediaStream([event.track]);
-                if (stream) {
-                    addCallTile(otherUid, participantData?.name || "Participant", stream, false);
-                }
+                addCallTile(otherUid, participantData?.name || "Participant", stream);
             };
 
             pc.onconnectionstatechange = () => {
@@ -1568,36 +1553,40 @@
                 }
             };
 
-            const offerRef = pairRef.child("offer");
-            const answerRef = pairRef.child("answer");
-            const localCandidatesRef = pairRef.child(isOfferer ? "offerCandidates" : "answerCandidates");
-            const remoteCandidatesRef = pairRef.child(isOfferer ? "answerCandidates" : "offerCandidates");
+            // Both users use the same pair documents. Sort order chooses who offers.
+            const offerRef = pairRef.collection("offer").doc("sdp");
+            const answerRef = pairRef.collection("answer").doc("sdp");
+            const localCandidates = pairRef.collection(
+                isOfferer ? "offerCandidates" : "answerCandidates"
+            );
+            const remoteCandidates = pairRef.collection(
+                isOfferer ? "answerCandidates" : "offerCandidates"
+            );
 
             pc.onicecandidate = event => {
                 if (!event.candidate || state.closed) return;
-                localCandidatesRef.push(event.candidate.toJSON()).catch(error => {
-                    console.warn("Could not write ICE candidate:", error);
+                localCandidates.add(event.candidate.toJSON()).catch(error => {
+                    console.error("Could not save ICE candidate:", error);
                 });
             };
 
-            const onCandidate = snapshot => {
-                const value = snapshot.val();
-                if (!value || state.closed) return;
+            const candidateUnsubscribe = remoteCandidates.onSnapshot(snapshot => {
+                snapshot.docChanges().forEach(change => {
+                    if (change.type !== "added" || state.closed) return;
+                    const candidate = new RTCIceCandidate(change.doc.data());
 
-                const candidate = new RTCIceCandidate(value);
-                if (!state.remoteDescriptionSet) {
-                    state.candidateQueue.push(candidate);
-                } else {
-                    pc.addIceCandidate(candidate).catch(error => {
-                        console.warn("Could not add ICE candidate:", error);
-                    });
-                }
-            };
+                    if (!state.remoteDescriptionSet) {
+                        state.candidateQueue.push(candidate);
+                    } else {
+                        pc.addIceCandidate(candidate).catch(error =>
+                            console.warn("Could not add ICE candidate:", error)
+                        );
+                    }
+                });
+            }, error => console.error("ICE listener failed:", error));
+            state.listeners.push(candidateUnsubscribe);
 
-            remoteCandidatesRef.on("child_added", onCandidate);
-            state.listeners.push([remoteCandidatesRef, "child_added", onCandidate]);
-
-            async function setRemoteDescription(description) {
+            async function applyRemoteDescription(description) {
                 if (state.closed || !description || pc.remoteDescription) return;
 
                 await pc.setRemoteDescription(new RTCSessionDescription(description));
@@ -1616,50 +1605,45 @@
                 try {
                     const offer = await pc.createOffer();
                     await pc.setLocalDescription(offer);
-
                     await offerRef.set({
                         type: offer.type,
-                        sdp: offer.sdp
+                        sdp: offer.sdp,
+                        from: currentUser.uid,
+                        to: otherUid
                     });
 
-                    const onAnswer = async snapshot => {
-                        const answer = snapshot.val();
-                        if (!answer || state.closed) return;
-
+                    const unsubscribe = answerRef.onSnapshot(async doc => {
+                        if (!doc.exists || state.closed) return;
                         try {
-                            await setRemoteDescription(answer);
+                            await applyRemoteDescription(doc.data());
                         } catch (error) {
-                            console.error("Could not set remote answer:", error);
+                            console.error("Could not apply answer:", error);
                         }
-                    };
-
-                    answerRef.on("value", onAnswer);
-                    state.listeners.push([answerRef, "value", onAnswer]);
+                    }, error => console.error("Answer listener failed:", error));
+                    state.listeners.push(unsubscribe);
                 } catch (error) {
                     console.error("Could not create offer:", error);
                     closeGroupPeer(otherUid);
                 }
             } else {
-                const onOffer = async snapshot => {
-                    const offer = snapshot.val();
-                    if (!offer || state.closed || pc.signalingState !== "stable") return;
+                const unsubscribe = offerRef.onSnapshot(async doc => {
+                    if (!doc.exists || state.closed || pc.signalingState !== "stable") return;
 
                     try {
-                        await setRemoteDescription(offer);
-
+                        await applyRemoteDescription(doc.data());
                         const answer = await pc.createAnswer();
                         await pc.setLocalDescription(answer);
                         await answerRef.set({
                             type: answer.type,
-                            sdp: answer.sdp
+                            sdp: answer.sdp,
+                            from: currentUser.uid,
+                            to: otherUid
                         });
                     } catch (error) {
                         console.error("Could not answer offer:", error);
                     }
-                };
-
-                offerRef.on("value", onOffer);
-                state.listeners.push([offerRef, "value", onOffer]);
+                }, error => console.error("Offer listener failed:", error));
+                state.listeners.push(unsubscribe);
             }
         }
 
@@ -1668,16 +1652,14 @@
             if (!state) return;
 
             state.closed = true;
-
-            for (const [ref, eventName, handler] of state.listeners) {
-                ref.off(eventName, handler);
-            }
+            state.listeners.forEach(unsubscribe => {
+                try { unsubscribe(); } catch (_) {}
+            });
 
             state.pc.ontrack = null;
             state.pc.onicecandidate = null;
             state.pc.onconnectionstatechange = null;
             state.pc.close();
-
             groupPeers.delete(uid);
         }
 
@@ -1685,32 +1667,29 @@
             if (leavingGroupCall) return;
             leavingGroupCall = true;
 
-            if (groupRoomRef && groupParticipantsListener) {
-                groupRoomRef.child("participants").off("value", groupParticipantsListener);
+            if (groupParticipantsUnsubscribe) {
+                groupParticipantsUnsubscribe();
+                groupParticipantsUnsubscribe = null;
             }
 
             for (const uid of [...groupPeers.keys()]) {
                 closeGroupPeer(uid);
+                removeCallTile(uid);
             }
 
             if (groupParticipantRef) {
                 try {
-                    await groupParticipantRef.onDisconnect().cancel();
-                    await groupParticipantRef.remove();
+                    await groupParticipantRef.delete();
                 } catch (error) {
-                    console.warn("Could not clean up call membership:", error);
+                    console.warn("Could not remove call participant:", error);
                 }
             }
 
-            if (localCallStream) {
-                localCallStream.getTracks().forEach(track => track.stop());
-            }
-
+            localCallStream?.getTracks().forEach(track => track.stop());
             localCallStream = null;
             groupRoomId = null;
             groupRoomRef = null;
             groupParticipantRef = null;
-            groupParticipantsListener = null;
 
             callOverlay.style.display = "none";
             callModal.style.display = "none";
